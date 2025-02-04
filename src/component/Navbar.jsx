@@ -108,7 +108,7 @@ function Navbar() {
     if (userType === "teacher") {
       if (username === "teacher123" && password === "adminpass") {
         alert("Teacher logged in successfully!");
-        navigate("/dashboard");
+        navigate("/Attendance"); // Redirect to the attendance page
       } else {
         alert("Invalid Teacher Credentials!");
       }
@@ -135,6 +135,7 @@ function Navbar() {
     }
     handleCloseLogin();
   };
+  
 
   return (
     <AppBar position="sticky" sx={{ background: "#f5f5f5", boxShadow: "none" }}>

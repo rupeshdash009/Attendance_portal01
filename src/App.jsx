@@ -10,6 +10,7 @@ import Login from "./component/Login/Login";
 import Seatbooking from './component/Seatbooking';
 import BookingForm from "./component/BookingForm";
 // import { Register } from "./component/Register";
+import Attendance from "./component/Attendance";
 
 
 function App() {
@@ -24,6 +25,7 @@ function App() {
         <Route path="/seatbooking" element={<Seatbooking />} />
         <Route path="/bookingForm" element={<BookingForm />} />
         <Route path="/login" element={<Login />} />
+        <Route path="/attendance" element={<Attendance />} />
         
       </Routes>
     </Router>
