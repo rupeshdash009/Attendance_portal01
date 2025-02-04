@@ -1,69 +1,114 @@
-import * as React from "react";
+import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import AppBar from "@mui/material/AppBar";
-import Box from "@mui/material/Box";
-import Toolbar from "@mui/material/Toolbar";
-import IconButton from "@mui/material/IconButton";
-import Typography from "@mui/material/Typography";
-import Menu from "@mui/material/Menu";
-import MenuIcon from "@mui/icons-material/Menu";
-import Container from "@mui/material/Container";
-import Avatar from "@mui/material/Avatar";
-import Button from "@mui/material/Button";
-import Tooltip from "@mui/material/Tooltip";
-import MenuItem from "@mui/material/MenuItem";
-import Dialog from "@mui/material/Dialog";
-import DialogActions from "@mui/material/DialogActions";
-import DialogContent from "@mui/material/DialogContent";
-import DialogTitle from "@mui/material/DialogTitle";
-import TextField from "@mui/material/TextField";
+import { AppBar, Toolbar, IconButton, Typography, Box, Avatar, Button, Dialog, DialogTitle, DialogContent, DialogActions, TextField, FormControlLabel, Switch } from "@mui/material";
 import { styled } from "@mui/material/styles";
-import { motion } from "framer-motion"; // For animations
+import { motion } from "framer-motion";
 
+// Pages for navigation
 const pages = [
   { name: "Home", path: "/home" },
   { name: "About", path: "/about" },
-  { name: "SeatBooking", path: "/seatbooking" },
+  { name: "Seat Booking", path: "/seatbooking" },
 ];
 
-const StyledButton = styled(Button)(({ theme }) => ({
+// Styled Components for UI elements
+const StyledButton = styled(Button)({
   borderRadius: "50px",
   textTransform: "none",
   padding: "8px 20px",
   fontWeight: "500",
-  color: "#333", // Dark gray for minimalism
-  '&:hover': {
-    backgroundColor: "#e0e0e0", // Light gray on hover
-  },
-}));
+  color: "#333",
+  '&:hover': { backgroundColor: "#1976d2" },
+});
 
-const StyledDialog = styled(Dialog)(({ theme }) => ({
+const StyledDialog = styled(Dialog)({
   "& .MuiDialog-paper": {
-    borderRadius: "15px",
-    padding: "20px",
-    backgroundColor: "#f5f5f5", // Soft light gray
+    borderRadius: "20px",
+    padding: "30px",
+    background: "linear-gradient(135deg, rgba(0, 0, 0, 0.85), rgba(0, 0, 0, 0.65))",
+    color: "#fff",
+    boxShadow: "0 10px 30px rgba(0, 0, 0, 0.3)",
+    textAlign: "center",
+    width: "100%",
+    maxWidth: "420px",
+    margin: "auto",
+    backdropFilter: "blur(10px)",
   },
-}));
+});
 
+const InputField = styled(TextField)({
+  marginBottom: "20px",
+  '& .MuiInputBase-input': {
+    color: "#fff",
+  },
+  '& .MuiInputLabel-root': {
+    color: "#fff",
+  },
+  '& .MuiOutlinedInput-root': {
+    '& fieldset': {
+      borderColor: "#fff",
+    },
+    '&:hover fieldset': {
+      borderColor: "#1976d2",
+    },
+  },
+});
+
+const SwitchLabel = styled(Typography)({
+  color: "#fff",
+  fontWeight: "600",
+  textTransform: "uppercase",
+});
+
+const StyledButtonLogin = styled(Button)({
+  borderRadius: "30px",
+  textTransform: "none",
+  fontWeight: "600",
+  color: "#fff",
+  backgroundColor: "#1976d2",
+  padding: "12px 25px",
+  transition: "background-color 0.3s ease",
+  "&:hover": {
+    backgroundColor: "#115293",
+  },
+});
+
+const CreateAccountLink = styled(Typography)({
+  marginTop: "15px",
+  fontSize: "14px",
+  color: "#fff",
+  cursor: "pointer",
+  "&:hover": {
+    color: "#1976d2",
+  },
+});
+
+// Navbar Component
 function Navbar() {
   const navigate = useNavigate();
-  const [anchorElUser, setAnchorElUser] = React.useState(null);
-  const [openLogin, setOpenLogin] = React.useState(false);
-  const [userType, setUserType] = React.useState("student");
-  const [username, setUsername] = React.useState("");
-  const [password, setPassword] = React.useState("");
-  const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false);
+  const [openLogin, setOpenLogin] = useState(false);
+  const [userType, setUserType] = useState("student");
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [creatingAccount, setCreatingAccount] = useState(false);
+  const [newPassword, setNewPassword] = useState("");
+  const [blurBackground, setBlurBackground] = useState(false); // State to control background blur
 
-  const handleOpenUserMenu = (event) => setAnchorElUser(event.currentTarget);
-  const handleCloseUserMenu = () => setAnchorElUser(null);
-  const handleOpenLogin = () => setOpenLogin(true);
-  const handleCloseLogin = () => setOpenLogin(false);
-  const handleMenuToggle = () => setMobileMenuOpen(!mobileMenuOpen);
+  const handleOpenLogin = () => {
+    setBlurBackground(true); // Apply blur to the background
+    setOpenLogin(true);
+  };
+  
+  const handleCloseLogin = () => {
+    setBlurBackground(false); // Remove the blur when dialog is closed
+    setOpenLogin(false);
+  };
 
   const handleLogin = () => {
     if (userType === "teacher") {
       if (username === "teacher123" && password === "adminpass") {
         alert("Teacher logged in successfully!");
+        navigate("/dashboard");
       } else {
         alert("Invalid Teacher Credentials!");
       }
@@ -73,123 +118,126 @@ function Navbar() {
         const userData = JSON.parse(storedUser);
         if (userData.password === password) {
           alert("Student logged in successfully!");
+          navigate("/home");
         } else {
           alert("Incorrect password!");
         }
       } else {
-        alert("No account found! Please create a profile first.");
+        if (creatingAccount) {
+          // Create new student account
+          localStorage.setItem(username, JSON.stringify({ password: newPassword }));
+          alert("Account created successfully! You can now log in.");
+          setCreatingAccount(false);
+        } else {
+          alert("No account found! Please create an account first.");
+        }
       }
     }
     handleCloseLogin();
   };
 
-  const handleCreateProfileRedirect = () => {
-    navigate("/create-profile");
-  };
-
   return (
     <AppBar position="sticky" sx={{ background: "#f5f5f5", boxShadow: "none" }}>
-      <Container maxWidth="xl">
-        <Toolbar disableGutters sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          
-          {/* Logo/Title */}
-          <Typography
-            variant="h5"
-            component={Link}
-            to="/"
-            sx={{
-              mr: 2,
-              fontFamily: "monospace",
-              fontWeight: 600,
-              color: "#333", // Dark gray for minimalistic style
-              textDecoration: "none",
-              cursor: "pointer",
-              transition: "color 0.3s ease",
-              "&:hover": {
-                color: "#1976d2", // Blue hover effect
-              },
-            }}
-          >
-            Attendance
-          </Typography>
+      <Toolbar sx={{ display: "flex", justifyContent: "space-between" }}>
+        <Typography
+          variant="h5"
+          component={Link}
+          to="/"
+          sx={{
+            fontFamily: "monospace",
+            fontWeight: 600,
+            color: "#333",
+            textDecoration: "none",
+            cursor: "pointer",
+            transition: "color 0.3s ease",
+            "&:hover": { color: "#1976d2" },
+          }}
+        >
+          Attendance
+        </Typography>
 
-          {/* Mobile Menu Toggle */}
-          <IconButton sx={{ display: { xs: "block", md: "none" } }} onClick={handleMenuToggle}>
-            <MenuIcon sx={{ color: "#333" }} />
-          </IconButton>
-
-          {/* Menu Buttons */}
-          <Box sx={{ display: { xs: "none", md: "flex" }, justifyContent: "center", flexGrow: 1 }}>
-            {pages.map((page) => (
-              <motion.div
-                key={page.name}
-                whileHover={{ scale: 1.05 }}
-                transition={{ type: "spring", stiffness: 300 }}
-              >
-                <StyledButton component={Link} to={page.path}>
-                  {page.name}
-                </StyledButton>
-              </motion.div>
-            ))}
-          </Box>
-
-          {/* Login Icon */}
-          <motion.div
-            whileHover={{ scale: 1.2 }}
-            transition={{ type: "spring", stiffness: 300 }}
-          >
-            <Tooltip title="Login">
-              <IconButton onClick={handleOpenLogin} sx={{ p: 0 }}>
-                <Avatar alt="Login Icon" src="" sx={{ bgcolor: "#1976d2", cursor: "pointer" }} />
-              </IconButton>
-            </Tooltip>
-          </motion.div>
-        </Toolbar>
-      </Container>
-
-      {/* Mobile Menu */}
-      {mobileMenuOpen && (
-        <Box sx={{ display: { xs: "block", md: "none" }, backgroundColor: "#f5f5f5", padding: "20px", borderRadius: "10px" }}>
+        <Box sx={{ display: { xs: "none", md: "flex" }, justifyContent: "center", flexGrow: 1 }}>
           {pages.map((page) => (
-            <MenuItem key={page.name} component={Link} to={page.path} sx={{ color: "#333", textAlign: "center", margin: "10px 0" }}>
-              {page.name}
-            </MenuItem>
+            <motion.div key={page.name} whileHover={{ scale: 1.05 }} transition={{ type: "spring", stiffness: 300 }}>
+              <StyledButton component={Link} to={page.path}>
+                {page.name}
+              </StyledButton>
+            </motion.div>
           ))}
         </Box>
+
+        <motion.div whileHover={{ scale: 1.2 }} transition={{ type: "spring", stiffness: 300 }}>
+          <IconButton onClick={handleOpenLogin}>
+            <Avatar sx={{ bgcolor: "#1976d2", cursor: "pointer" }} />
+          </IconButton>
+        </motion.div>
+      </Toolbar>
+
+      {/* Background Blur Wrapper */}
+      {blurBackground && (
+        <Box
+          sx={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            width: "100%",
+            height: "100%",
+            backgroundColor: "rgba(0, 0, 0, 0.5)",
+            backdropFilter: "blur(8px)",
+            zIndex: 1,
+          }}
+        ></Box>
       )}
 
-      {/* Login Dialog */}
+      {/* Styled Login Dialog */}
       <StyledDialog open={openLogin} onClose={handleCloseLogin}>
-        <DialogTitle sx={{ textAlign: "center", fontWeight: "bold", color: "#333" }}>Login</DialogTitle>
+        <DialogTitle sx={{ fontWeight: "bold", fontSize: "26px", marginBottom: "20px" }}>
+          {userType === "student" ? "Student Login" : "Teacher Login"}
+        </DialogTitle>
         <DialogContent>
-          <TextField
+          <FormControlLabel
+            control={<Switch checked={userType === "teacher"} onChange={() => setUserType(userType === "student" ? "teacher" : "student")} />}
+            label={<SwitchLabel>{userType === "student" ? "Switch to Teacher" : "Switch to Student"}</SwitchLabel>}
+          />
+          <InputField
             fullWidth
-            margin="dense"
             label="Username or ID"
             variant="outlined"
             value={username}
             onChange={(e) => setUsername(e.target.value)}
-            sx={{ marginBottom: 2 }}
           />
-          <TextField
+          <InputField
             fullWidth
-            margin="dense"
             label="Password"
             type="password"
             variant="outlined"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
           />
+
+          {userType === "student" && !creatingAccount && (
+            <CreateAccountLink onClick={() => setCreatingAccount(true)}>
+              Create a new account
+            </CreateAccountLink>
+          )}
+
+          {creatingAccount && userType === "student" && (
+            <>
+              <InputField
+                fullWidth
+                label="Create Password"
+                type="password"
+                variant="outlined"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+              />
+            </>
+          )}
         </DialogContent>
         <DialogActions sx={{ justifyContent: "center" }}>
-          <StyledButton onClick={() => setUserType("student")} variant={userType === "student" ? "contained" : "outlined"}>Student</StyledButton>
-          <StyledButton onClick={() => setUserType("teacher")} variant={userType === "teacher" ? "contained" : "outlined"}>Teacher</StyledButton>
-          <StyledButton onClick={handleLogin} variant="contained" color="primary">Login</StyledButton>
-          {userType === "student" && (
-            <StyledButton onClick={handleCreateProfileRedirect} variant="contained" color="secondary">
-              Create Profile
-            </StyledButton>
-          )}
+          <StyledButtonLogin onClick={handleLogin} variant="contained">
+            {creatingAccount ? "Create Account" : "Login"}
+          </StyledButtonLogin>
         </DialogActions>
       </StyledDialog>
     </AppBar>

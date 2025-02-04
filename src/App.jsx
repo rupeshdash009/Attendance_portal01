@@ -9,6 +9,7 @@ import Login from "./component/Login/Login";
 // import { Seatbooking } from "./component/Seatbooking";
 import Seatbooking from './component/Seatbooking';
 import BookingForm from "./component/BookingForm";
+// import { Register } from "./component/Register";
 
 
 function App() {
@@ -23,6 +24,7 @@ function App() {
         <Route path="/seatbooking" element={<Seatbooking />} />
         <Route path="/bookingForm" element={<BookingForm />} />
         <Route path="/login" element={<Login />} />
+        
       </Routes>
     </Router>
   );
