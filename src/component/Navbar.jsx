@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { AppBar, Toolbar, IconButton, Typography, Box, Avatar, Button, Dialog, DialogTitle, DialogContent, DialogActions, TextField, FormControlLabel, Switch } from "@mui/material";
 import { styled } from "@mui/material/styles";
 import { motion } from "framer-motion";
+import { Close } from "@mui/icons-material";  // Import Close icon
 
 // Pages for navigation
 const pages = [
@@ -192,8 +193,14 @@ function Navbar() {
 
       {/* Styled Login Dialog */}
       <StyledDialog open={openLogin} onClose={handleCloseLogin}>
-        <DialogTitle sx={{ fontWeight: "bold", fontSize: "26px", marginBottom: "20px" }}>
+        <DialogTitle sx={{ fontWeight: "bold", fontSize: "26px", marginBottom: "20px", position: "relative" }}>
           {userType === "student" ? "Student Login" : "Teacher Login"}
+          <IconButton
+            onClick={handleCloseLogin}
+            sx={{ position: "absolute", top: "10px", right: "10px", color: "#fff" }}
+          >
+            <Close />
+          </IconButton>
         </DialogTitle>
         <DialogContent>
           <FormControlLabel

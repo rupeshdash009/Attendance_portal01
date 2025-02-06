@@ -5,12 +5,13 @@ import Home from "./component/Home";
 import About from "./component/About";
 // import Features from "./component/Features";
 // import SeatBooking from "./component/SeatBooking";
-import Login from "./component/Login/Login";
+
 // import { Seatbooking } from "./component/Seatbooking";
 import Seatbooking from './component/Seatbooking';
 import BookingForm from "./component/BookingForm";
 // import { Register } from "./component/Register";
 import Attendance from "./component/Attendance";
+
 
 
 function App() {
@@ -24,8 +25,9 @@ function App() {
         {/* <Route path="/features" element={<Features />} /> */}
         <Route path="/seatbooking" element={<Seatbooking />} />
         <Route path="/bookingForm" element={<BookingForm />} />
-        <Route path="/login" element={<Login />} />
         <Route path="/attendance" element={<Attendance />} />
+        {/* <Route path="/loginDialog" element={<LoginDialog/>} /> */}
+
         
       </Routes>
     </Router>

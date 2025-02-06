@@ -4,13 +4,15 @@ const BookingForm = ({ seat, onClose, onSubmit }) => {
   const [formData, setFormData] = useState({
     name: "",
     phone: "",
-    collegePassout: "",
+    twelfthPassoutYear: "",
     percentage12th: "",
     email: "",
   });
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [eligibilityError, setEligibilityError] = useState(""); // To show eligibility message
+  const [passoutYearError, setPassoutYearError] = useState(""); // For passout year validation
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -18,27 +20,66 @@ const BookingForm = ({ seat, onClose, onSubmit }) => {
   };
 
   const validateEmail = (email) => {
-    // Simple regex for email format validation
     const regex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
     return regex.test(email);
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
+
+    const currentYear = new Date().getFullYear(); // Get the current year
+
+    // Check if passout year is in the future
+    if (formData.twelfthPassoutYear > currentYear) {
+      setPassoutYearError("The passout year cannot be in the future.");
+      return;
+    }
+
+    // Reset passout year error if valid
+    setPassoutYearError("");
+
+    // Check if 12th percentage is 45% or above
+    if (formData.percentage12th < 45) {
+      setEligibilityError("Sorry, you are not eligible for seat booking due to low percentage.");
+      return;
+    }
+
+    // Reset eligibility error if valid
+    setEligibilityError("");
+
     // Basic email validation
     if (!validateEmail(formData.email)) {
       setError("Invalid email. Please enter a valid email address.");
       return;
     }
-    setError("");
+
+    setError(""); // Clear other errors
     onSubmit(formData);
     onClose();
   };
 
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-40">
-      <div className="bg-white p-6 rounded-lg shadow-lg w-96">
+      <div className="bg-white p-6 rounded-lg shadow-lg w-96 relative">
+        <button
+          onClick={onClose}
+          className="absolute top-2 right-2 text-gray-600 text-2xl"
+        >
+          ×
+        </button>
         <h2 className="text-2xl font-bold mb-4">Book Seat {seat}</h2>
+
+        {/* Eligibility and Passout Year Error Messages */}
+        {eligibilityError && (
+          <div className="bg-red-100 text-red-600 p-2 mb-4 rounded-md">
+            {eligibilityError}
+          </div>
+        )}
+        {passoutYearError && (
+          <div className="bg-red-100 text-red-600 p-2 mb-4 rounded-md">
+            {passoutYearError}
+          </div>
+        )}
 
         <form onSubmit={handleSubmit} className="space-y-3">
           <input
@@ -63,9 +104,9 @@ const BookingForm = ({ seat, onClose, onSubmit }) => {
 
           <input
             type="text"
-            name="collegePassout"
-            placeholder="College Passout Year"
-            value={formData.collegePassout}
+            name="twelfthPassoutYear"
+            placeholder="12th Passout Year"
+            value={formData.twelfthPassoutYear}
             onChange={handleChange}
             className="w-full p-2 border rounded-md"
             required
@@ -109,6 +150,16 @@ const BookingForm = ({ seat, onClose, onSubmit }) => {
             </button>
           </div>
         </form>
+
+        {/* College Info for Low Percentage */}
+        {formData.percentage12th && formData.percentage12th < 45 && (
+          <div className="mt-4 text-gray-700">
+            <h3 className="font-semibold">Important Information:</h3>
+            <p className="text-sm">
+              We suggest contacting the college's admissions office for more information on your eligibility.
+            </p>
+          </div>
+        )}
       </div>
     </div>
   );
