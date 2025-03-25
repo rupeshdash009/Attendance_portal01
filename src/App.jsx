@@ -29,7 +29,7 @@ function App() {
         <Route path="/seatbooking" element={<Seatbooking />} />
         <Route path="/bookingForm" element={<BookingForm />} />
         <Route path="/attendance" element={<Attendance />} />
-        <Route path="/Loginpage" element={<Loginpage />} />
+        <Route path="/loginpage" element={<Loginpage />} />
         
         {/* <Route path="/loginDialog" element={<LoginDialog/>} /> */}
 
