@@ -1,3 +1,4 @@
+// eslint-disable-next-line no-unused-vars
 import React, { useState } from "react";
 import { motion } from "framer-motion";
 import BookingForm from "./BookingForm";
@@ -18,7 +19,8 @@ const SeatBooking = () => {
     }
   };
 
-  const handleBooking = (formData) => {
+  // eslint-disable-next-line no-unused-vars
+  const handleBooking = (_formData) => {
     setBookedSeats([...bookedSeats, selectedSeat]);
     setShowForm(false);
     setSelectedSeat(null);

@@ -14,14 +14,7 @@ import BookingForm from "./component/BookingForm";
 // import { Register } from "./component/Register";
 import Attendance from "./component/Attendance";
 
-import LoginPage from "./component/Loginpage";
-
-
-
-
-
-
-
+import Loginpage from "./component/Loginpage";
 
 function App() {
  
@@ -36,7 +29,7 @@ function App() {
         <Route path="/seatbooking" element={<Seatbooking />} />
         <Route path="/bookingForm" element={<BookingForm />} />
         <Route path="/attendance" element={<Attendance />} />
-        <Route path="/Loginpage" element={<LoginPage />} />
+        <Route path="/Loginpage" element={<Loginpage />} />
         
         {/* <Route path="/loginDialog" element={<LoginDialog/>} /> */}
 
