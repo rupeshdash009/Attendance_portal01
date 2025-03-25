@@ -1,4 +1,4 @@
-// eslint-disable-next-line no-unused-vars
+
 import React from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Navbar from "./component/Navbar";
@@ -13,8 +13,7 @@ import Seatbooking from './component/Seatbooking';
 import BookingForm from "./component/BookingForm";
 // import { Register } from "./component/Register";
 import Attendance from "./component/Attendance";
-
-import Loginpage from "./component/Loginpage";
+import LoginPage from "./component/loginPage";
 
 function App() {
  
@@ -29,7 +28,8 @@ function App() {
         <Route path="/seatbooking" element={<Seatbooking />} />
         <Route path="/bookingForm" element={<BookingForm />} />
         <Route path="/attendance" element={<Attendance />} />
-        <Route path="/loginpage" element={<Loginpage />} />
+        <Route path="/loginpage" element={<LoginPage />} />
+        
         
         {/* <Route path="/loginDialog" element={<LoginDialog/>} /> */}
 
