@@ -13,6 +13,7 @@ export default defineConfig({
   },
   build: {
     outDir: "dist",
+    target: "esnext", // Merged from second config
   },
   preview: {
     port: 4173,
