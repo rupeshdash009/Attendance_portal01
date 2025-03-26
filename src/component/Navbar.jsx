@@ -26,7 +26,7 @@ function Navbar() {
   const navigate = useNavigate(); // For navigation
 
   const handleAvatarClick = () => {
-    navigate("/Loginpage"); // Redirect to login page
+    navigate("/Signup"); // Redirect to login page
   };
 
   return (

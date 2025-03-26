@@ -14,7 +14,9 @@ import Seatbooking from './component/Seatbooking';
 import BookingForm from "./component/BookingForm";
 // import { Register } from "./component/Register";
 import Attendance from "./component/Attendance";
-import LoginPage from "./component/LoginPage";
+import Login from "./component/Login";
+import Signup from "./component/Signup";
+import Dashboard from "./component/Dashboard";
 
 
 function App() {
@@ -30,7 +32,9 @@ function App() {
         <Route path="/seatbooking" element={<Seatbooking />} />
         <Route path="/bookingForm" element={<BookingForm />} />
         <Route path="/attendance" element={<Attendance />} />
-        <Route path="/LoginPage" element={<LoginPage />} />
+        <Route path="/Login" element={<Login />} />
+        <Route path="/Signup" element={<Signup />} />
+        <Route path="/Dashboard" element={<Dashboard />} />
         
         
         {/* <Route path="/loginDialog" element={<LoginDialog/>} /> */}
