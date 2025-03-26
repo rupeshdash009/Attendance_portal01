@@ -1,9 +1,9 @@
-
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Dialog, DialogTitle, DialogContent, DialogActions, TextField, FormControlLabel, Switch, Button, IconButton, Typography } from "@mui/material";
 import { styled } from "@mui/material/styles";
 import { Close } from "@mui/icons-material";
+import axios from "axios";  // Add axios for making API requests
 
 const StyledDialog = styled(Dialog)({
   "& .MuiDialog-paper": {
@@ -55,43 +55,42 @@ const LoginPage = () => {
     navigate("/");
   };
 
-  const handleLogin = () => {
+  // Handle login with backend API
+  const handleLogin = async () => {
     if (!username) {
       alert("Please enter your username!");
       return;
     }
 
-    if (userType === "teacher") {
-      if (!password) {
-        alert("Please enter your password!");
-        return;
-      }
-      if (username === "teacher123" && password === "adminpass") {
-        alert("Teacher logged in successfully!");
-        handleClose();
-        navigate("/Attendance");
+    try {
+      if (userType === "teacher") {
+        // Teacher login request
+        if (!password) {
+          alert("Please enter your password!");
+          return;
+        }
+        const response = await axios.post("http://localhost:5000/api/auth/login", { phone: username, password });
+        if (response.data) {
+          alert("Teacher logged in successfully!");
+          handleClose();
+          navigate("/Attendance");
+        }
       } else {
-        alert("Invalid Teacher Credentials!");
+        // Student login request
+        const response = await axios.post("http://localhost:5000/api/auth/login", { phone: username, password });
+        if (response.data) {
+          alert("Student logged in successfully!");
+          handleClose();
+          navigate("/home");
+        }
       }
-    } else {
-      const storedUser = localStorage.getItem(username);
-      if (!storedUser) {
-        alert("No account found! Please create an account first.");
-        return;
-      }
-
-      const userData = JSON.parse(storedUser);
-      if (userData.password === password) {
-        alert("Student logged in successfully!");
-        handleClose();
-        navigate("/home");
-      } else {
-        alert("Incorrect password!");
-      }
+    } catch (error) {
+      console.error("Login failed", error);
+      alert("Login failed. Please check your credentials.");
     }
   };
 
-  const handleCreateAccount = () => {
+  const handleCreateAccount = async () => {
     if (!username) {
       alert("Please enter a username!");
       return;
@@ -101,16 +100,17 @@ const LoginPage = () => {
       return;
     }
 
-    if (localStorage.getItem(username)) {
-      alert("User already exists! Please log in.");
-      setCreatingAccount(false);
-      return;
+    try {
+      const response = await axios.post("http://localhost:5000/api/auth/register", { phone: username, password: newPassword });
+      if (response.data) {
+        alert("Account created successfully! You can now log in.");
+        setCreatingAccount(false);
+        setNewPassword("");
+      }
+    } catch (error) {
+      console.error("Account creation failed", error);
+      alert("Account creation failed. Please try again.");
     }
-
-    localStorage.setItem(username, JSON.stringify({ password: newPassword }));
-    alert("Account created successfully! You can now log in.");
-    setCreatingAccount(false);
-    setNewPassword("");
   };
 
   return (
@@ -124,14 +124,10 @@ const LoginPage = () => {
       <DialogContent>
         <FormControlLabel
           control={<Switch checked={userType === "teacher"} onChange={() => { setUserType(userType === "student" ? "teacher" : "student"); setCreatingAccount(false); }} />}
-          label={
-            <Typography sx={{ color: "#fff", fontWeight: "600", textTransform: "uppercase" }}>
-              {userType === "student" ? "Switch to Teacher" : "Switch to Student"}
-            </Typography>
-          }
+          label={<Typography sx={{ color: "#fff", fontWeight: "600", textTransform: "uppercase" }}>{userType === "student" ? "Switch to Teacher" : "Switch to Student"}</Typography>}
         />
         <InputField fullWidth label="Username or ID" variant="outlined" value={username} onChange={(e) => setUsername(e.target.value)} />
-        
+
         {creatingAccount ? (
           <InputField fullWidth label="Create Password" type="password" variant="outlined" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} />
         ) : (
