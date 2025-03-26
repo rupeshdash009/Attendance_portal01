@@ -1,163 +1,115 @@
-import React, { useState } from "react";
+import { useState } from "react";
+import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import { Dialog, DialogTitle, DialogContent, DialogActions, TextField, FormControlLabel, Switch, Button, IconButton, Typography } from "@mui/material";
-import { styled } from "@mui/material/styles";
-import { Close } from "@mui/icons-material";
-import axios from "axios";  // Add axios for making API requests
 
-const StyledDialog = styled(Dialog)({
-  "& .MuiDialog-paper": {
-    borderRadius: "20px",
-    padding: "30px",
-    background: "linear-gradient(135deg, rgba(0, 0, 0, 0.85), rgba(0, 0, 0, 0.65))",
-    color: "#fff",
-    boxShadow: "0 10px 30px rgba(0, 0, 0, 0.3)",
-    textAlign: "center",
-    width: "100%",
-    maxWidth: "420px",
-    margin: "auto",
-    backdropFilter: "blur(10px)",
-  },
-});
-
-const InputField = styled(TextField)({
-  marginBottom: "20px",
-  '& .MuiInputBase-input': { color: "#fff" },
-  '& .MuiInputLabel-root': { color: "#fff" },
-  '& .MuiOutlinedInput-root': {
-    '& fieldset': { borderColor: "#fff" },
-    '&:hover fieldset': { borderColor: "#1976d2" },
-  },
-});
-
-const StyledButtonLogin = styled(Button)({
-  borderRadius: "30px",
-  textTransform: "none",
-  fontWeight: "600",
-  color: "#fff",
-  backgroundColor: "#1976d2",
-  padding: "12px 25px",
-  transition: "background-color 0.3s ease",
-  "&:hover": { backgroundColor: "#115293" },
-});
-
-const LoginPage = () => {
-  const navigate = useNavigate();
+const Login = () => {
   const [userType, setUserType] = useState("student");
-  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [creatingAccount, setCreatingAccount] = useState(false);
-  const [newPassword, setNewPassword] = useState("");
-  const [open, setOpen] = useState(true);
+  const [isSignUp, setIsSignUp] = useState(false);
+  const [fullName, setFullName] = useState("");
+  const [rollNumber, setRollNumber] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const navigate = useNavigate();
 
-  const handleClose = () => {
-    setOpen(false);
-    navigate("/");
-  };
-
-  // Handle login with backend API
-  const handleLogin = async () => {
-    if (!username) {
-      alert("Please enter your username!");
-      return;
-    }
-
+  const handleLogin = async (e) => {
+    e.preventDefault();
     try {
-      if (userType === "teacher") {
-        // Teacher login request
-        if (!password) {
-          alert("Please enter your password!");
-          return;
-        }
-        const response = await axios.post("http://localhost:5000/api/auth/login", { phone: username, password });
-        if (response.data) {
-          alert("Teacher logged in successfully!");
-          handleClose();
-          navigate("/Attendance");
-        }
+      const response = await fetch("http://localhost:5000/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
+      const data = await response.json();
+      if (response.ok) {
+        alert("Login successful!");
+        console.log(data);
       } else {
-        // Student login request
-        const response = await axios.post("http://localhost:5000/api/auth/login", { phone: username, password });
-        if (response.data) {
-          alert("Student logged in successfully!");
-          handleClose();
-          navigate("/home");
-        }
+        alert("Login failed: " + data.message);
       }
     } catch (error) {
-      console.error("Login failed", error);
-      alert("Login failed. Please check your credentials.");
+      console.error("Login error:", error);
     }
   };
 
-  const handleCreateAccount = async () => {
-    if (!username) {
-      alert("Please enter a username!");
+  const handleSignUp = async (e) => {
+    e.preventDefault();
+    if (password !== confirmPassword) {
+      alert("Passwords do not match");
       return;
     }
-    if (!newPassword) {
-      alert("Please enter a password!");
-      return;
-    }
-
     try {
-      const response = await axios.post("http://localhost:5000/api/auth/register", { phone: username, password: newPassword });
-      if (response.data) {
-        alert("Account created successfully! You can now log in.");
-        setCreatingAccount(false);
-        setNewPassword("");
+      const response = await fetch("http://localhost:5000/api/auth/signup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userType, fullName, rollNumber, email, password }),
+      });
+      const data = await response.json();
+      if (response.ok) {
+        alert("Account created successfully!");
+        console.log(data);
+        setIsSignUp(false);
+      } else {
+        alert("Signup failed: " + data.message);
       }
     } catch (error) {
-      console.error("Account creation failed", error);
-      alert("Account creation failed. Please try again.");
+      console.error("Signup error:", error);
     }
   };
 
   return (
-    <StyledDialog open={open} onClose={handleClose}>
-      <DialogTitle sx={{ fontWeight: "bold", fontSize: "26px", marginBottom: "20px", position: "relative" }}>
-        {userType === "student" ? (creatingAccount ? "Create Student Account" : "Student Login") : "Teacher Login"}
-        <IconButton onClick={handleClose} sx={{ position: "absolute", top: "10px", right: "10px", color: "#fff" }}>
-          <Close />
-        </IconButton>
-      </DialogTitle>
-      <DialogContent>
-        <FormControlLabel
-          control={<Switch checked={userType === "teacher"} onChange={() => { setUserType(userType === "student" ? "teacher" : "student"); setCreatingAccount(false); }} />}
-          label={<Typography sx={{ color: "#fff", fontWeight: "600", textTransform: "uppercase" }}>{userType === "student" ? "Switch to Teacher" : "Switch to Student"}</Typography>}
-        />
-        <InputField fullWidth label="Username or ID" variant="outlined" value={username} onChange={(e) => setUsername(e.target.value)} />
-
-        {creatingAccount ? (
-          <InputField fullWidth label="Create Password" type="password" variant="outlined" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} />
-        ) : (
-          <InputField fullWidth label="Password" type="password" variant="outlined" value={password} onChange={(e) => setPassword(e.target.value)} />
-        )}
-
-        {userType === "student" && !creatingAccount && (
-          <Typography
-            onClick={() => setCreatingAccount(true)}
-            sx={{
-              marginTop: "15px",
-              fontSize: "14px",
-              color: "#fff",
-              cursor: "pointer",
-              "&:hover": { color: "#1976d2" },
-            }}
+    <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-r from-indigo-500 to-purple-600 p-6">
+      <motion.div initial={{ opacity: 0, y: -50 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} className="bg-white bg-opacity-30 backdrop-blur-xl p-8 rounded-3xl shadow-2xl w-96 max-w-full border border-white/40 relative">
+        <button className="absolute top-4 right-4 text-gray-700 text-2xl font-bold cursor-pointer" onClick={() => navigate("/")}>×</button>
+        <h2 className="text-3xl font-extrabold text-center text-gray-800 mb-6">{isSignUp ? "Sign Up" : userType === "student" ? "Student Login" : "Teacher Login"}</h2>
+        <div className="flex justify-center gap-4 mb-6">
+          <button
+            className={`px-6 py-3 rounded-full text-lg font-semibold transition-all shadow-lg ${userType === "student" ? "bg-white text-indigo-500" : "bg-gray-300 hover:bg-gray-400"}`}
+            onClick={() => setUserType("student")}
           >
-            Create a new account
-          </Typography>
-        )}
-      </DialogContent>
-      <DialogActions sx={{ justifyContent: "center" }}>
-        {creatingAccount ? (
-          <StyledButtonLogin onClick={handleCreateAccount} variant="contained">Create Account</StyledButtonLogin>
+            Student
+          </button>
+          <button
+            className={`px-6 py-3 rounded-full text-lg font-semibold transition-all shadow-lg ${userType === "teacher" ? "bg-white text-indigo-500" : "bg-gray-300 hover:bg-gray-400"}`}
+            onClick={() => setUserType("teacher")}
+          >
+            Teacher
+          </button>
+        </div>
+        {isSignUp ? (
+          <form onSubmit={handleSignUp} className="space-y-4">
+            {userType === "student" && (
+              <>
+                <input type="text" placeholder="Full Name" className="w-full p-4 bg-white bg-opacity-20 border rounded-xl text-gray-800 placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-indigo-500" value={fullName} onChange={(e) => setFullName(e.target.value)} />
+                <input type="text" placeholder="Roll Number" className="w-full p-4 bg-white bg-opacity-20 border rounded-xl text-gray-800 placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-indigo-500" value={rollNumber} onChange={(e) => setRollNumber(e.target.value)} />
+              </>
+            )}
+            <input type="email" placeholder="Email" className="w-full p-4 bg-white bg-opacity-20 border rounded-xl text-gray-800 placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-indigo-500" value={email} onChange={(e) => setEmail(e.target.value)} />
+            <input type="password" placeholder="Password" className="w-full p-4 bg-white bg-opacity-20 border rounded-xl text-gray-800 placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-indigo-500" value={password} onChange={(e) => setPassword(e.target.value)} />
+            <input type="password" placeholder="Confirm Password" className="w-full p-4 bg-white bg-opacity-20 border rounded-xl text-gray-800 placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-indigo-500" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} />
+            <button type="submit" className="w-full bg-indigo-500 text-white py-4 rounded-xl font-semibold hover:bg-indigo-600 transition">Sign Up</button>
+            <div className="text-center mt-4">
+              <a href="#" className="text-gray-700 font-medium" onClick={() => setIsSignUp(false)}>Already have an account? Login</a>
+            </div>
+          </form>
         ) : (
-          <StyledButtonLogin onClick={handleLogin} variant="contained">Login</StyledButtonLogin>
+          <form onSubmit={handleLogin} className="space-y-4">
+            <input type="email" placeholder="Email" className="w-full p-4 bg-white bg-opacity-20 border rounded-xl text-gray-800 placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-indigo-500" value={email} onChange={(e) => setEmail(e.target.value)} />
+            <input type="password" placeholder="Password" className="w-full p-4 bg-white bg-opacity-20 border rounded-xl text-gray-800 placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-indigo-500" value={password} onChange={(e) => setPassword(e.target.value)} />
+            <button type="submit" className="w-full bg-indigo-500 text-white py-4 rounded-xl font-semibold hover:bg-indigo-600 transition">Login</button>
+          </form>
         )}
-      </DialogActions>
-    </StyledDialog>
+        <div className="text-center mt-4">
+          {!isSignUp && <a href="#" className="text-gray-700 font-medium">Forgot Password?</a>}
+        </div>
+        <div className="text-center mt-2">
+          {!isSignUp && (
+            <a href="#" className="text-gray-700 font-medium" onClick={() => setIsSignUp(true)}>Create an Account</a>
+          )}
+        </div>
+      </motion.div>
+    </div>
   );
 };
 
-export default LoginPage;
+export default Login;

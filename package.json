@@ -17,13 +17,12 @@
     "@fontsource/roboto": "^5.1.1",
     "@mui/icons-material": "^6.4.8",
     "@mui/material": "^6.4.8",
-    "@tailwindcss/vite": "^4.0.3",
     "@toolpad/core": "^0.12.0",
     "axios": "^1.8.4",
     "build": "^0.1.4",
     "docx": "^9.3.0",
     "file-saver": "^2.0.5",
-    "framer-motion": "^12.0.11",
+    "framer-motion": "^12.6.1",
     "fs-extra": "^11.3.0",
     "jspdf": "^3.0.1",
     "jspdf-autotable": "^5.0.2",
@@ -35,6 +34,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.17.0",
+    "@tailwindcss/vite": "^4.0.17",
     "@types/react": "^18.3.18",
     "@types/react-dom": "^18.3.5",
     "@vitejs/plugin-react": "^4.3.4",
@@ -45,7 +45,7 @@
     "eslint-plugin-react-refresh": "^0.4.16",
     "globals": "^15.14.0",
     "postcss": "^8.5.3",
-    "tailwindcss": "^3.4.17",
+    "tailwindcss": "^4.0.17",
     "vite": "^6.2.3"
   }
 }
