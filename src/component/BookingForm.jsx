@@ -1,3 +1,4 @@
+import axios from "axios";
 import React, { useState } from "react";
 
 const BookingForm = ({ seat, onClose, onSubmit }) => {
@@ -24,39 +25,49 @@ const BookingForm = ({ seat, onClose, onSubmit }) => {
     return regex.test(email);
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-
-    const currentYear = new Date().getFullYear(); // Get the current year
-
-    // Check if passout year is in the future
+  
+    const currentYear = new Date().getFullYear();
+  
     if (formData.twelfthPassoutYear > currentYear) {
       setPassoutYearError("The passout year cannot be in the future.");
       return;
     }
-
-    // Reset passout year error if valid
     setPassoutYearError("");
-
-    // Check if 12th percentage is 45% or above
+  
     if (formData.percentage12th < 45) {
       setEligibilityError("Sorry, you are not eligible for seat booking due to low percentage.");
       return;
     }
-
-    // Reset eligibility error if valid
     setEligibilityError("");
-
-    // Basic email validation
+  
     if (!validateEmail(formData.email)) {
       setError("Invalid email. Please enter a valid email address.");
       return;
     }
+    setError("");
+  
+    setLoading(true);
+  
+    try {
+      const response = await axios.post("http://localhost:5000/api/bookings/book-seat", {
+        ...formData,
+        seat,
+      });
 
-    setError(""); // Clear other errors
-    onSubmit(formData);
-    onClose();
+      console.log("booking sets" , response.data);
+  
+      alert("Seat booked successfully!");
+      onClose(); // Close the modal after success
+    } catch (error) {
+      console.error("Error booking seat:", error.response?.data || error.message);
+      setError(error.response?.data?.message || "Something went wrong");
+    } finally {
+      setLoading(false);
+    }
   };
+  
 
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-40">
