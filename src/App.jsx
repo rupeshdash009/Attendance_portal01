@@ -19,6 +19,7 @@ import Signup from "./component/Signup";
 import Dashboard from "./component/Dashboard";
 
 
+
 function App() {
  
   return (
@@ -35,9 +36,7 @@ function App() {
         <Route path="/Login" element={<Login />} />
         <Route path="/Signup" element={<Signup />} />
         <Route path="/Dashboard" element={<Dashboard />} />
-        
-        
-        {/* <Route path="/loginDialog" element={<LoginDialog/>} /> */}
+      
 
         
 
