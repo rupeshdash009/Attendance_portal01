@@ -1,7 +1,7 @@
 import axios from "axios";
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 
-const BookingForm = ({ seat, onClose, fetchBookedSeats }) => {
+const BookingForm = ({ seat, onClose, onSubmit }) => {
   const [formData, setFormData] = useState({
     name: "",
     phone: "",
@@ -12,22 +12,8 @@ const BookingForm = ({ seat, onClose, fetchBookedSeats }) => {
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [eligibilityError, setEligibilityError] = useState("");
-  const [passoutYearError, setPassoutYearError] = useState("");
-  const [bookedSeats, setBookedSeats] = useState([]);
-
-  useEffect(() => {
-    const fetchBookedSeatsList = async () => {
-      try {
-        const response = await axios.get("http://localhost:5000/api/bookings");
-        setBookedSeats(response.data.map((seat) => seat.seat));
-      } catch (error) {
-        console.error("Error fetching booked seats:", error);
-      }
-    };
-
-    fetchBookedSeatsList();
-  }, []);
+  const [eligibilityError, setEligibilityError] = useState(""); // To show eligibility message
+  const [passoutYearError, setPassoutYearError] = useState(""); // For passout year validation
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -42,37 +28,46 @@ const BookingForm = ({ seat, onClose, fetchBookedSeats }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
   
-    // Ensure phone number is provided
-    if (!formData.phone.trim()) {
-      setError("Phone number is required.");
-      return;
-    }
+    const currentYear = new Date().getFullYear();
   
-    // Ensure seat number is valid
-    if (!seat) {
-      setError("Seat number is required.");
+    if (formData.twelfthPassoutYear > currentYear) {
+      setPassoutYearError("The passout year cannot be in the future.");
       return;
     }
+    setPassoutYearError("");
+  
+    if (formData.percentage12th < 45) {
+      setEligibilityError("Sorry, you are not eligible for seat booking due to low percentage.");
+      return;
+    }
+    setEligibilityError("");
+  
+    if (!validateEmail(formData.email)) {
+      setError("Invalid email. Please enter a valid email address.");
+      return;
+    }
+    setError("");
   
     setLoading(true);
-    setError("");
   
     try {
       const response = await axios.post("http://localhost:5000/api/bookings/book-seat", {
         ...formData,
-        seat, // Ensure seat number is sent
+        seat,
       });
+
+      console.log("booking sets" , response.data);
   
-      console.log("Booking successful:", response.data);
       alert("Seat booked successfully!");
-      onClose();
+      onClose(); // Close the modal after success
     } catch (error) {
       console.error("Error booking seat:", error.response?.data || error.message);
-      setError(error.response?.data?.error || "Something went wrong");
+      setError(error.response?.data?.message || "Something went wrong");
     } finally {
       setLoading(false);
     }
   };
+  
 
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-40">
@@ -85,21 +80,16 @@ const BookingForm = ({ seat, onClose, fetchBookedSeats }) => {
         </button>
         <h2 className="text-2xl font-bold mb-4">Book Seat {seat}</h2>
 
-        {/* Display booked seats */}
-        <div className="bg-gray-100 p-2 rounded-md mb-4">
-          <h3 className="font-semibold text-gray-700">Booked Seats:</h3>
-          {bookedSeats.length > 0 ? (
-            <div className="text-sm text-red-600">{bookedSeats.join(", ")}</div>
-          ) : (
-            <p className="text-sm text-gray-500">No seats booked yet.</p>
-          )}
-        </div>
-
+        {/* Eligibility and Passout Year Error Messages */}
         {eligibilityError && (
-          <div className="bg-red-100 text-red-600 p-2 mb-4 rounded-md">{eligibilityError}</div>
+          <div className="bg-red-100 text-red-600 p-2 mb-4 rounded-md">
+            {eligibilityError}
+          </div>
         )}
         {passoutYearError && (
-          <div className="bg-red-100 text-red-600 p-2 mb-4 rounded-md">{passoutYearError}</div>
+          <div className="bg-red-100 text-red-600 p-2 mb-4 rounded-md">
+            {passoutYearError}
+          </div>
         )}
 
         <form onSubmit={handleSubmit} className="space-y-3">
@@ -124,7 +114,7 @@ const BookingForm = ({ seat, onClose, fetchBookedSeats }) => {
           />
 
           <input
-            type="number"
+            type="text"
             name="twelfthPassoutYear"
             placeholder="12th Passout Year"
             value={formData.twelfthPassoutYear}
@@ -166,18 +156,18 @@ const BookingForm = ({ seat, onClose, fetchBookedSeats }) => {
             <button
               type="submit"
               className="px-4 py-2 bg-blue-600 text-white rounded-md"
-              disabled={loading}
             >
-              {loading ? "Booking..." : "Confirm"}
+              Confirm
             </button>
           </div>
         </form>
 
+        {/* College Info for Low Percentage */}
         {formData.percentage12th && formData.percentage12th < 45 && (
           <div className="mt-4 text-gray-700">
             <h3 className="font-semibold">Important Information:</h3>
             <p className="text-sm">
-              We suggest contacting the college admissions office for more information on your eligibility.
+              We suggest contacting the college's admissions office for more information on your eligibility.
             </p>
           </div>
         )}
