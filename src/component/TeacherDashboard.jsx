@@ -1,14 +1,15 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 
-// Styled Components
+// ========== STYLED COMPONENTS ==========
 const DashboardContainer = styled.div`
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-  max-width: 1400px;
+  max-width: 1600px;
   margin: 0 auto;
-  padding: 24px;
-  color: #2d3748;
-  background-color: #f8fafc;
+  padding: 32px;
+  color: #111827;
+  background-color: #f9fafb;
   min-height: 100vh;
 `;
 
@@ -16,42 +17,51 @@ const DashboardHeader = styled.header`
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 32px;
-  padding-bottom: 16px;
-  border-bottom: 1px solid #e2e8f0;
+  margin-bottom: 40px;
+`;
+
+const HeaderTitle = styled.h1`
+  font-size: 2rem;
+  color: #111827;
+  margin: 0;
+  font-weight: 700;
+  letter-spacing: -0.025em;
 `;
 
 const HeaderActions = styled.div`
   display: flex;
   align-items: center;
-  gap: 24px;
+  gap: 20px;
 `;
 
 const NotificationButton = styled.button`
   background: none;
   border: none;
-  font-size: 1.2rem;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   cursor: pointer;
+  transition: all 0.2s;
   position: relative;
-  color: #4a5568;
-  transition: transform 0.2s;
-
+  
   &:hover {
-    transform: scale(1.1);
-    color: #2d3748;
+    background-color: #f3f4f6;
   }
 `;
 
 const Badge = styled.span`
   position: absolute;
-  top: -6px;
-  right: -6px;
+  top: 4px;
+  right: 4px;
   background: #ef4444;
   color: white;
   border-radius: 50%;
-  width: 20px;
-  height: 20px;
-  font-size: 0.7rem;
+  width: 18px;
+  height: 18px;
+  font-size: 0.65rem;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -64,11 +74,11 @@ const UserProfile = styled.div`
   gap: 12px;
   cursor: pointer;
   padding: 8px 12px;
-  border-radius: 8px;
-  transition: background-color 0.2s;
+  border-radius: 10px;
+  transition: all 0.2s;
 
   &:hover {
-    background-color: #edf2f7;
+    background-color: #f3f4f6;
   }
 `;
 
@@ -76,826 +86,750 @@ const UserAvatar = styled.div`
   width: 44px;
   height: 44px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #3b82f6, #6366f1);
+  background: linear-gradient(135deg, #4f46e5, #7c3aed);
   color: white;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-weight: bold;
+  font-weight: 500;
   font-size: 1.1rem;
 `;
 
 const DashboardTabs = styled.nav`
   display: flex;
   gap: 8px;
-  margin-bottom: 24px;
-  background: white;
-  padding: 8px;
+  margin-bottom: 32px;
+  background: #f3f4f6;
+  padding: 6px;
   border-radius: 12px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
 `;
 
 const TabButton = styled.button`
-  padding: 10px 20px;
-  background: none;
+  padding: 10px 24px;
+  background: ${props => props.$active ? 'white' : 'transparent'};
   border: none;
   cursor: pointer;
   border-radius: 8px;
   transition: all 0.2s;
   font-weight: 500;
-  color: #4a5568;
+  color: ${props => props.$active ? '#111827' : '#6b7280'};
+  font-size: 0.95rem;
+  box-shadow: ${props => props.$active ? '0 1px 3px rgba(0,0,0,0.08)' : 'none'};
 
   &:hover {
-    background: #f1f5f9;
-    color: #1e40af;
-  }
-
-  &.active {
-    background: #eff6ff;
-    color: #1e40af;
-    font-weight: 600;
+    background: ${props => props.$active ? 'white' : '#e5e7eb'};
   }
 `;
 
 const DashboardMain = styled.main`
-  background: white;
-  border-radius: 16px;
-  padding: 24px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-`;
-
-const OverviewGrid = styled.div`
-  display: grid;
-  grid-template-columns: repeat(12, 1fr);
-  gap: 24px;
-  margin-bottom: 24px;
-
-  @media (max-width: 1200px) {
-    grid-template-columns: repeat(6, 1fr);
-  }
-
-  @media (max-width: 768px) {
-    grid-template-columns: 1fr;
-  }
-`;
-
-const StatsCard = styled.div`
-  background: white;
-  border-radius: 12px;
-  padding: 20px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-  border-left: 4px solid ${props => props.color || '#3b82f6'};
-  grid-column: span 4;
-
-  @media (max-width: 1200px) {
-    grid-column: span 3;
-  }
-
-  @media (max-width: 768px) {
-    grid-column: span 1;
-  }
-`;
-
-const StatValue = styled.p`
-  font-size: 2.2rem;
-  font-weight: 700;
-  margin: 8px 0 4px;
-  color: #1e293b;
-`;
-
-const StatLabel = styled.h3`
-  font-size: 0.95rem;
-  color: #64748b;
-  font-weight: 500;
-  margin: 0;
-`;
-
-const StatChange = styled.p`
-  color: ${props => props.positive ? '#10b981' : '#ef4444'};
-  font-size: 0.85rem;
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  margin: 0;
-`;
-
-const CardGrid = styled.div`
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 24px;
-  margin-top: 24px;
-
-  @media (max-width: 1200px) {
-    grid-template-columns: repeat(2, 1fr);
-  }
-
-  @media (max-width: 768px) {
-    grid-template-columns: 1fr;
-  }
-`;
-
-const Card = styled.div`
-  background: white;
-  border-radius: 12px;
-  padding: 20px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-`;
-
-const CardHeader = styled.div`
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 16px;
-`;
-
-const CardTitle = styled.h3`
-  font-size: 1.1rem;
-  color: #1e293b;
-  margin: 0;
-`;
-
-const ViewAllLink = styled.a`
-  color: #3b82f6;
-  font-size: 0.85rem;
-  text-decoration: none;
-  font-weight: 500;
-  cursor: pointer;
-
-  &:hover {
-    text-decoration: underline;
-  }
-`;
-
-const ClassList = styled.ul`
-  list-style: none;
-  padding: 0;
-  margin: 0;
-`;
-
-const ClassItem = styled.li`
-  padding: 12px 0;
-  border-bottom: 1px solid #f1f5f9;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  transition: background-color 0.2s;
-
-  &:last-child {
-    border-bottom: none;
-  }
-
-  &:hover {
-    background-color: #f8fafc;
-  }
-`;
-
-const ClassInfo = styled.div`
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 28px;
 `;
 
-const ClassName = styled.span`
-  font-weight: 600;
-  color: #1e293b;
-`;
-
-const ClassMeta = styled.span`
-  font-size: 0.85rem;
-  color: #64748b;
-`;
-
-const ClassTime = styled.span`
-  font-weight: 600;
-  color: #3b82f6;
-  font-size: 0.9rem;
-`;
-
-const ActionButtons = styled.div`
+const StatsGrid = styled.div`
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 12px;
-  margin-top: 24px;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 20px;
+`;
 
-  @media (max-width: 768px) {
-    grid-template-columns: 1fr 1fr;
+const StatCard = styled.div`
+  background: white;
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  transition: all 0.2s;
+  border: 1px solid #e5e7eb;
+  
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+    border-color: #d1d5db;
   }
+`;
+
+const StatValue = styled.div`
+  font-size: 2.25rem;
+  font-weight: 700;
+  color: #111827;
+  margin-bottom: 4px;
+  line-height: 1;
+`;
+
+const StatLabel = styled.div`
+  font-size: 0.95rem;
+  color: #6b7280;
+  margin-bottom: 12px;
+`;
+
+const StatTrend = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.85rem;
+  color: ${props => props.$positive ? '#10b981' : '#ef4444'};
+`;
+
+const QuickActions = styled.div`
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 16px;
+  margin-top: 20px;
 `;
 
 const ActionButton = styled.button`
-  padding: 14px;
-  background: ${props => props.primary ? '#3b82f6' : '#f1f5f9'};
-  color: ${props => props.primary ? 'white' : '#1e293b'};
+  padding: 16px;
+  background: ${props => props.$primary ? '#111827' : '#f3f4f6'};
+  color: ${props => props.$primary ? 'white' : '#111827'};
   border: none;
-  border-radius: 8px;
+  border-radius: 10px;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  font-weight: 500;
+  font-size: 0.95rem;
+  transition: all 0.2s;
+  border: 1px solid ${props => props.$primary ? 'transparent' : '#e5e7eb'};
+
+  &:hover {
+    background: ${props => props.$primary ? '#1f2937' : '#e5e7eb'};
+    transform: translateY(-2px);
+  }
+`;
+
+const Section = styled.section`
+  background: white;
+  border-radius: 12px;
+  padding: 28px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  border: 1px solid #e5e7eb;
+`;
+
+const SectionHeader = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+`;
+
+const SectionTitle = styled.h2`
+  font-size: 1.5rem;
+  color: #111827;
+  margin: 0;
+  font-weight: 600;
+`;
+
+const ViewAll = styled.button`
+  background: none;
+  border: none;
+  color: #4f46e5;
+  font-size: 0.95rem;
+  font-weight: 500;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 0;
+  transition: all 0.2s;
+
+  &:hover {
+    color: #6366f1;
+  }
+`;
+
+const AIIntegration = styled.div`
+  background: white;
+  border-radius: 12px;
+  padding: 28px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  border: 1px solid #e5e7eb;
+`;
+
+const AITitle = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 24px;
+`;
+
+const AIInsights = styled.div`
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 24px;
+`;
+
+const AIInsightCard = styled.div`
+  padding: 24px;
+  border-radius: 12px;
+  background: ${props => props.$bg || '#f9fafb'};
+  border-left: 4px solid ${props => props.$color || '#4f46e5'};
+  transition: all 0.2s;
+  border: 1px solid #e5e7eb;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+  }
+`;
+
+const AIInsightTitle = styled.div`
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #111827;
+`;
+
+const AIInsightValue = styled.div`
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: 12px;
+  color: ${props => props.$color || '#111827'};
+`;
+
+const AIInsightDesc = styled.div`
+  font-size: 0.95rem;
+  color: #6b7280;
+  margin-bottom: 20px;
+  line-height: 1.5;
+`;
+
+const AIButton = styled.button`
+  width: 100%;
+  padding: 14px;
+  background: #111827;
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-weight: 500;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  font-weight: 500;
+  gap: 10px;
   transition: all 0.2s;
+  margin-top: 24px;
 
   &:hover {
-    background: ${props => props.primary ? '#2563eb' : '#e2e8f0'};
-    transform: translateY(-1px);
-  }
-
-  svg {
-    width: 18px;
-    height: 18px;
+    background: #1f2937;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
   }
 `;
 
-const AnnouncementList = styled.ul`
-  list-style: none;
-  padding: 0;
-  margin: 0;
-`;
-
-const AnnouncementItem = styled.li`
-  padding: 16px 0;
-  border-bottom: 1px solid #f1f5f9;
-  transition: background-color 0.2s;
-
-  &:last-child {
-    border-bottom: none;
-  }
-
-  &:hover {
-    background-color: #f8fafc;
-  }
-`;
-
-const AnnouncementTitle = styled.h4`
-  font-size: 1rem;
-  color: #1e293b;
-  margin: 0 0 8px 0;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-`;
-
-const AnnouncementDate = styled.p`
-  color: #64748b;
-  font-size: 0.85rem;
-  margin: 0 0 8px 0;
-`;
-
-const AnnouncementContent = styled.p`
-  color: #475569;
-  font-size: 0.9rem;
-  margin: 0;
-  line-height: 1.5;
-`;
-
-const ClassesTab = styled.div`
-  padding: 16px 0;
-`;
-
-const ClassCards = styled.div`
+const ClassesGrid = styled.div`
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
   gap: 20px;
-  margin-top: 24px;
+  margin-top: 20px;
 `;
 
 const ClassCard = styled.div`
+  padding: 24px;
   background: white;
   border-radius: 12px;
-  padding: 20px;
   box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-  border: 1px solid #e2e8f0;
-  transition: transform 0.2s, box-shadow 0.2s;
+  transition: all 0.2s;
+  border: 1px solid #e5e7eb;
 
   &:hover {
     transform: translateY(-2px);
     box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+    border-color: #d1d5db;
   }
 `;
 
-const ClassCardHeader = styled.div`
+const ClassHeader = styled.div`
   display: flex;
   justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 16px;
+  margin-bottom: 20px;
 `;
 
-const ClassCardTitle = styled.h3`
-  font-size: 1.2rem;
-  color: #1e293b;
+const ClassTitle = styled.h3`
+  font-size: 1.25rem;
   margin: 0;
-`;
-
-const ClassCardBadge = styled.span`
-  background: #e0f2fe;
-  color: #0369a1;
-  padding: 4px 8px;
-  border-radius: 999px;
-  font-size: 0.75rem;
   font-weight: 600;
+  color: #111827;
 `;
 
-const ClassCardStats = styled.div`
-  display: flex;
-  gap: 16px;
-  margin: 12px 0;
-`;
-
-const ClassStat = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-`;
-
-const ClassStatValue = styled.span`
-  font-weight: 700;
-  color: #1e293b;
-`;
-
-const ClassStatLabel = styled.span`
+const ClassBadge = styled.span`
+  padding: 6px 12px;
+  background: #f0f0f0;
+  border-radius: 20px;
   font-size: 0.8rem;
-  color: #64748b;
+  font-weight: 500;
+  color: #6b7280;
+`;
+
+const ClassStats = styled.div`
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  margin: 20px 0;
+`;
+
+const ClassStat = styled.div``;
+
+const ClassStatValue = styled.div`
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: #111827;
+`;
+
+const ClassStatLabel = styled.div`
+  font-size: 0.85rem;
+  color: #6b7280;
+  margin-top: 4px;
 `;
 
 const ClassActions = styled.div`
   display: flex;
-  gap: 8px;
-  margin-top: 16px;
+  gap: 12px;
+  margin-top: 24px;
 `;
 
-const ClassActionButton = styled.button`
-  padding: 8px 12px;
-  background: ${props => props.primary ? '#3b82f6' : '#f1f5f9'};
-  color: ${props => props.primary ? 'white' : '#1e293b'};
+const SmallButton = styled.button`
+  padding: 10px 16px;
+  background: ${props => props.$primary ? '#111827' : '#f3f4f6'};
+  color: ${props => props.$primary ? 'white' : '#111827'};
   border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 0.85rem;
+  border-radius: 8px;
+  font-size: 0.9rem;
   font-weight: 500;
-  transition: background-color 0.2s;
+  cursor: pointer;
+  transition: all 0.2s;
+  border: 1px solid ${props => props.$primary ? 'transparent' : '#e5e7eb'};
 
   &:hover {
-    background: ${props => props.primary ? '#2563eb' : '#e2e8f0'};
+    background: ${props => props.$primary ? '#1f2937' : '#e5e7eb'};
+    transform: translateY(-1px);
   }
 `;
 
-const AssignmentsTab = styled.div`
-  padding: 16px 0;
+// ========== ATTENDANCE COMPONENTS ==========
+const AttendanceContainer = styled.div`
+  background: white;
+  border-radius: 12px;
+  padding: 28px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  border: 1px solid #e5e7eb;
 `;
 
-const AssignmentsHeader = styled.div`
+const AttendanceHeader = styled.div`
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 24px;
 `;
 
-const CreateButton = styled.button`
-  padding: 10px 16px;
-  background: #3b82f6;
-  color: white;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-weight: 500;
-  transition: background-color 0.2s;
-
-  &:hover {
-    background: #2563eb;
-  }
-
-  svg {
-    width: 16px;
-    height: 16px;
-  }
+const AttendanceTitle = styled.h2`
+  font-size: 1.5rem;
+  color: #111827;
+  margin: 0;
+  font-weight: 600;
 `;
 
-const AssignmentTabs = styled.div`
+const AttendanceControls = styled.div`
   display: flex;
-  gap: 8px;
-  margin-bottom: 24px;
-  padding: 8px;
-  background: #f1f5f9;
-  border-radius: 8px;
+  gap: 16px;
 `;
 
-const AssignmentTabButton = styled.button`
-  padding: 8px 16px;
-  background: ${props => props.active ? 'white' : 'transparent'};
-  color: ${props => props.active ? '#1e40af' : '#475569'};
-  border: none;
-  border-radius: 6px;
+const DatePicker = styled.input`
+  padding: 10px 14px;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+  background: white;
+  font-size: 0.95rem;
+  color: #111827;
   cursor: pointer;
-  font-weight: ${props => props.active ? '600' : '500'};
-  box-shadow: ${props => props.active ? '0 1px 3px rgba(0,0,0,0.1)' : 'none'};
   transition: all 0.2s;
 
   &:hover {
-    color: #1e40af;
-  }
-`;
-
-const AssignmentsList = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-`;
-
-const AssignmentCard = styled.div`
-  background: white;
-  border-radius: 12px;
-  padding: 20px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-  display: grid;
-  grid-template-columns: 2fr 1fr 1fr;
-  gap: 16px;
-  align-items: center;
-  transition: transform 0.2s;
-
-  &:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-  }
-
-  @media (max-width: 768px) {
-    grid-template-columns: 1fr;
-  }
-`;
-
-const AssignmentInfo = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-`;
-
-const AssignmentTitle = styled.h3`
-  font-size: 1.1rem;
-  color: #1e293b;
-  margin: 0;
-`;
-
-const AssignmentMeta = styled.div`
-  display: flex;
-  gap: 16px;
-`;
-
-const AssignmentClass = styled.span`
-  font-size: 0.85rem;
-  color: #64748b;
-  display: flex;
-  align-items: center;
-  gap: 4px;
-`;
-
-const AssignmentDueDate = styled.span`
-  font-size: 0.85rem;
-  color: #64748b;
-  display: flex;
-  align-items: center;
-  gap: 4px;
-`;
-
-const AssignmentStats = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-`;
-
-const ProgressContainer = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 8px;
-`;
-
-const ProgressText = styled.span`
-  font-size: 0.85rem;
-  color: #64748b;
-  min-width: 80px;
-`;
-
-const ProgressBar = styled.div`
-  flex-grow: 1;
-  height: 8px;
-  background: #e2e8f0;
-  border-radius: 4px;
-  overflow: hidden;
-`;
-
-const ProgressFill = styled.div`
-  height: 100%;
-  background: #3b82f6;
-  border-radius: 4px;
-  width: ${props => props.percentage}%;
-`;
-
-const AssignmentActions = styled.div`
-  display: flex;
-  gap: 8px;
-  justify-content: flex-end;
-
-  @media (max-width: 768px) {
-    justify-content: flex-start;
-    margin-top: 12px;
-  }
-`;
-
-const GradeButton = styled.button`
-  padding: 8px 16px;
-  background: #10b981;
-  color: white;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  font-weight: 500;
-  transition: background-color 0.2s;
-
-  &:hover {
-    background: #059669;
-  }
-`;
-
-const EditButton = styled.button`
-  padding: 8px 16px;
-  background: #f1f5f9;
-  color: #1e293b;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  font-weight: 500;
-  transition: background-color 0.2s;
-
-  &:hover {
-    background: #e2e8f0;
-  }
-`;
-
-const GradesTab = styled.div`
-  padding: 16px 0;
-`;
-
-const GradebookControls = styled.div`
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 24px;
-  gap: 16px;
-
-  @media (max-width: 768px) {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-`;
-
-const ControlGroup = styled.div`
-  display: flex;
-  gap: 12px;
-  align-items: center;
-
-  @media (max-width: 768px) {
-    width: 100%;
-    justify-content: space-between;
-  }
-`;
-
-const Select = styled.select`
-  padding: 8px 12px;
-  border-radius: 6px;
-  border: 1px solid #e2e8f0;
-  background: white;
-  font-size: 0.9rem;
-  color: #1e293b;
-  cursor: pointer;
-  transition: border-color 0.2s;
-
-  &:hover {
-    border-color: #cbd5e1;
+    border-color: #d1d5db;
   }
 
   &:focus {
     outline: none;
-    border-color: #3b82f6;
-    box-shadow: 0 0 0 2px #bfdbfe;
+    border-color: #4f46e5;
+    box-shadow: 0 0 0 2px #eef2ff;
   }
 `;
 
-const Button = styled.button`
-  padding: 8px 16px;
-  background: ${props => props.primary ? '#3b82f6' : '#f1f5f9'};
-  color: ${props => props.primary ? 'white' : '#1e293b'};
-  border: none;
-  border-radius: 6px;
+const ClassSelect = styled.select`
+  padding: 10px 14px;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+  background: white;
+  font-size: 0.95rem;
+  color: #111827;
   cursor: pointer;
-  font-weight: 500;
-  transition: background-color 0.2s;
-  display: flex;
-  align-items: center;
-  gap: 6px;
+  transition: all 0.2s;
+  min-width: 200px;
 
   &:hover {
-    background: ${props => props.primary ? '#2563eb' : '#e2e8f0'};
+    border-color: #d1d5db;
   }
 
-  svg {
-    width: 16px;
-    height: 16px;
+  &:focus {
+    outline: none;
+    border-color: #4f46e5;
+    box-shadow: 0 0 0 2px #eef2ff;
   }
 `;
 
-const GradebookTableContainer = styled.div`
-  overflow-x: auto;
-  border-radius: 12px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-  background: white;
-  margin-top: 16px;
-`;
-
-const GradebookTable = styled.table`
+const AttendanceTable = styled.table`
   width: 100%;
-  border-collapse: collapse;
+  border-collapse: separate;
+  border-spacing: 0;
+  margin-top: 24px;
 `;
 
 const TableHeader = styled.th`
-  padding: 12px 16px;
+  padding: 14px 16px;
   text-align: left;
-  background: #f8fafc;
+  background: #f9fafb;
   font-weight: 600;
-  color: #475569;
+  color: #6b7280;
   font-size: 0.9rem;
-  border-bottom: 1px solid #e2e8f0;
-`;
+  border-bottom: 1px solid #e5e7eb;
+  position: sticky;
+  top: 0;
 
-const TableCell = styled.td`
-  padding: 12px 16px;
-  text-align: left;
-  border-bottom: 1px solid #f1f5f9;
-  color: #1e293b;
-`;
+  &:first-child {
+    border-radius: 8px 0 0 0;
+  }
 
-const GradeCell = styled.td`
-  padding: 12px 16px;
-  text-align: left;
-  border-bottom: 1px solid #f1f5f9;
-  font-weight: 600;
-  color: ${props => {
-    if (props.grade < 70) return '#ef4444';
-    if (props.grade < 80) return '#f59e0b';
-    if (props.grade < 90) return '#3b82f6';
-    return '#10b981';
-  }};
-`;
-
-const AverageCell = styled.td`
-  padding: 12px 16px;
-  text-align: left;
-  border-bottom: 1px solid #f1f5f9;
-  font-weight: 700;
-  color: #1e293b;
-  background: #f8fafc;
-`;
-
-const TableRow = styled.tr`
-  transition: background-color 0.2s;
-
-  &:hover {
-    background-color: #f8fafc;
+  &:last-child {
+    border-radius: 0 8px 0 0;
   }
 `;
 
-// Icons (using simple emojis for demonstration)
-const CalendarIcon = () => <span>📅</span>;
-const AssignmentIcon = () => <span>📝</span>;
-const GradeIcon = () => <span>📊</span>;
-const AnnouncementIcon = () => <span>📢</span>;
-const PlusIcon = () => <span>➕</span>;
-const ChevronDownIcon = () => <span>⌄</span>;
-const DownloadIcon = () => <span>⤓</span>;
+const TableCell = styled.td`
+  padding: 14px 16px;
+  text-align: left;
+  border-bottom: 1px solid #f3f4f6;
+  color: #111827;
+`;
 
+const StatusButton = styled.button`
+  padding: 8px 12px;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  font-weight: 500;
+  font-size: 0.85rem;
+  transition: all 0.2s;
+  background: ${props => {
+    if (props.$status === 'present') return '#d1fae5';
+    if (props.$status === 'absent') return '#fee2e2';
+    if (props.$status === 'late') return '#fef3c7';
+    return '#f3f4f6';
+  }};
+  color: ${props => {
+    if (props.$status === 'present') return '#065f46';
+    if (props.$status === 'absent') return '#b91c1c';
+    if (props.$status === 'late') return '#92400e';
+    return '#6b7280';
+  }};
+
+  &:hover {
+    opacity: 0.9;
+    transform: translateY(-1px);
+  }
+`;
+
+const SaveButton = styled.button`
+  padding: 14px 24px;
+  background: #4f46e5;
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-weight: 500;
+  cursor: pointer;
+  margin-top: 28px;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  &:hover {
+    background: #6366f1;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+  }
+`;
+
+// ========== ICONS ==========
+const NotificationIcon = () => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M18 8C18 6.4087 17.3679 4.88258 16.2426 3.75736C15.1174 2.63214 13.5913 2 12 2C10.4087 2 8.88258 2.63214 7.75736 3.75736C6.63214 4.88258 6 6.4087 6 8C6 15 3 17 3 17H21C21 17 18 15 18 8Z" stroke="#111827" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+    <path d="M13.73 21C13.5542 21.3031 13.3019 21.5547 12.9982 21.7295C12.6946 21.9044 12.3504 21.9965 12 21.9965C11.6496 21.9965 11.3054 21.9044 11.0018 21.7295C10.6981 21.5547 10.4458 21.3031 10.27 21" stroke="#111827" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+  </svg>
+);
+
+const CalendarIcon = () => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M19 4H5C3.89543 4 3 4.89543 3 6V20C3 21.1046 3.89543 22 5 22H19C20.1046 22 21 21.1046 21 20V6C21 4.89543 20.1046 4 19 4Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+    <path d="M16 2V6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+    <path d="M8 2V6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+    <path d="M3 10H21" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+  </svg>
+);
+
+const AssignmentIcon = () => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M14 2H6C5.46957 2 4.96086 2.21071 4.58579 2.58579C4.21071 2.96086 4 3.46957 4 4V20C4 20.5304 4.21071 21.0391 4.58579 21.4142C4.96086 21.7893 5.46957 22 6 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V8L14 2Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+    <path d="M14 2V8H20" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+    <path d="M16 13H8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+    <path d="M16 17H8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+    <path d="M10 9H9H8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+  </svg>
+);
+
+const GradeIcon = () => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+  </svg>
+);
+
+const AnnouncementIcon = () => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M22 4H2V16H16L22 22V4Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+    <path d="M8 10H8.01" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+    <path d="M12 10H12.01" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+    <path d="M16 10H16.01" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+  </svg>
+);
+
+const AttendanceIcon = () => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M16 21V19C16 17.9391 15.5786 16.9217 14.8284 16.1716C14.0783 15.4214 13.0609 15 12 15H5C3.93913 15 2.92172 15.4214 2.17157 16.1716C1.42143 16.9217 1 17.9391 1 19V21" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+    <path d="M8.5 11C10.7091 11 12.5 9.20914 12.5 7C12.5 4.79086 10.7091 3 8.5 3C6.29086 3 4.5 4.79086 4.5 7C4.5 9.20914 6.29086 11 8.5 11Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+    <path d="M17 11L19 13L23 9" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+  </svg>
+);
+
+const ChevronRight = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M9 18L15 12L9 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+  </svg>
+);
+
+const AIIcon = () => (
+  <svg width="26" height="26" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M9 12L11 14L15 10M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z" stroke="#4f46e5" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+  </svg>
+);
+
+const TrendUpIcon = () => (
+  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M23 6L13.5 15.5L8.5 10.5L1 18" stroke="#10b981" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+    <path d="M17 6H23V12" stroke="#10b981" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+  </svg>
+);
+
+const AlertIcon = () => (
+  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M12 9V11M12 15H12.01M5.07183 19H18.9282C20.4678 19 21.4301 17.3333 20.6603 16L13.7321 4C12.9623 2.66667 11.0378 2.66667 10.268 4L3.33978 16C2.56998 17.3333 3.53223 19 5.07183 19Z" stroke="#ef4444" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+  </svg>
+);
+
+const ChartIcon = () => (
+  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M18 20V10M12 20V4M6 20V14" stroke="#4f46e5" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+  </svg>
+);
+
+const RocketIcon = () => (
+  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M12.9999 15L9.99994 12M14.2399 9.76L19.3399 4.66C19.7019 4.29801 19.7189 3.72099 19.3909 3.35599L19.3399 3.3C18.9789 2.93801 18.4019 2.92101 18.0369 3.24901L17.9999 3.3L12.8899 8.4C12.3309 8.148 11.7189 8 11.0699 8C8.99994 8 6.99994 9 5.99994 10.5C4.99994 12 4.26994 14.57 4.07994 15.7C4.02994 15.99 4.24994 16.26 4.53994 16.29C5.66994 16.48 8.23994 16 9.99994 15C11.7599 14 12.9999 12 12.9999 9.99C12.9999 9.341 12.8519 8.729 12.5999 8.17L17.6999 3.06L17.7499 3.01C18.1119 2.64801 18.6889 2.63101 19.0539 2.95901L19.1099 3.01C19.4719 3.37199 19.4889 3.94901 19.1609 4.31401L19.1099 4.37L14.2399 9.76Z" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+    <path d="M12 15C11.2044 15 10.4413 15.3161 9.87868 15.8787C9.31607 16.4413 9 17.2044 9 18C9 18.7956 9.31607 19.5587 9.87868 20.1213C10.4413 20.6839 11.2044 21 12 21C12.7956 21 13.5587 20.6839 14.1213 20.1213C14.6839 19.5587 15 18.7956 15 18C15 17.2044 14.6839 16.4413 14.1213 15.8787C13.5587 15.3161 12.7956 15 12 15Z" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+  </svg>
+);
+
+const PlusIcon = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M12 5V19M5 12H19" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+  </svg>
+);
+
+const SaveIcon = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M19 21H5C3.89543 21 3 20.1046 3 19V5C3 3.89543 3.89543 3 5 3H16.1716C16.702 3 17.2107 3.21071 17.5858 3.58579L20.4142 6.41421C20.7893 6.78929 21 7.29799 21 7.82843V19C21 20.1046 20.1046 21 19 21Z" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+    <path d="M17 21V13H7V21" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+    <path d="M7 3V8H12" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+  </svg>
+);
+
+// ========== MAIN COMPONENT ==========
 const TeacherDashboard = () => {
   const [activeTab, setActiveTab] = useState('overview');
-  const [activeAssignmentTab, setActiveAssignmentTab] = useState('upcoming');
-  
+  const [attendanceDate, setAttendanceDate] = useState(new Date().toISOString().split('T')[0]);
+  const [selectedClass, setSelectedClass] = useState('');
+  const [attendanceStatus, setAttendanceStatus] = useState({});
+  const navigate = useNavigate();
+
   // Sample data
-  const classes = [
-    { id: 1, name: 'Math 101', period: '1st Period', students: 24, assignments: 3 },
-    { id: 2, name: 'Algebra II', period: '3rd Period', students: 20, assignments: 2 },
-    { id: 3, name: 'Calculus', period: '5th Period', students: 18, assignments: 4 },
-  ];
-  
-  const upcomingClasses = [
-    { id: 1, name: 'Math 101', period: '1st Period', time: '8:00 AM', room: 'Room 204' },
-    { id: 2, name: 'Algebra II', period: '3rd Period', time: '10:30 AM', room: 'Room 112' },
-    { id: 3, name: 'Calculus', period: '5th Period', time: '1:15 PM', room: 'Room 204' },
-  ];
-  
-  const upcomingAssignments = [
-    { id: 1, class: 'Math 101', title: 'Chapter 3 Quiz', dueDate: 'Nov 15, 2023', submissions: 18, total: 24 },
-    { id: 2, class: 'Algebra II', title: 'Linear Equations HW', dueDate: 'Nov 16, 2023', submissions: 12, total: 20 },
-    { id: 3, class: 'Calculus', title: 'Derivatives Test', dueDate: 'Nov 17, 2023', submissions: 8, total: 18 },
-  ];
-  
-  const recentAnnouncements = [
-    { id: 1, title: 'School Holiday', date: 'Nov 10, 2023', content: 'No classes on November 23rd for Thanksgiving. Enjoy the break with your family!' },
-    { id: 2, title: 'Parent-Teacher Conferences', date: 'Nov 5, 2023', content: 'Sign up sheets are now available in the faculty lounge. Please schedule your conferences by Friday.' },
+  const stats = [
+    { label: 'Total Students', value: '142', trend: '+5%' },
+    { label: 'Attendance Rate', value: '94%', trend: '+2%', positive: true },
+    { label: 'Assignments Due', value: '3', trend: '2 to grade' },
+    { label: 'Avg. Grade', value: 'B+', trend: '+0.5', positive: true }
   ];
 
-  const studentPerformance = [
-    { name: 'Alice Johnson', math: 92, science: 88, english: 95 },
-    { name: 'Bob Smith', math: 85, science: 90, english: 82 },
-    { name: 'Charlie Brown', math: 78, science: 85, english: 88 },
-    { name: 'Diana Prince', math: 95, science: 94, english: 93 },
-    { name: 'Ethan Hunt', math: 68, science: 72, english: 75 },
-    { name: 'Fiona Green', math: 89, science: 91, english: 87 },
+  const classes = [
+    { id: 'math101', name: 'Math 101', period: '1st Period', students: 24, assignments: 3, attendance: '94%' },
+    { id: 'algebra2', name: 'Algebra II', period: '3rd Period', students: 20, assignments: 2, attendance: '92%' },
+    { id: 'calculus', name: 'Calculus', period: '5th Period', students: 18, assignments: 4, attendance: '96%' }
   ];
+
+  const students = [
+    { id: 1, name: 'Alice Johnson', email: 'alice@school.edu' },
+    { id: 2, name: 'Bob Smith', email: 'bob@school.edu' },
+    { id: 3, name: 'Charlie Brown', email: 'charlie@school.edu' },
+    { id: 4, name: 'Diana Prince', email: 'diana@school.edu' },
+    { id: 5, name: 'Ethan Hunt', email: 'ethan@school.edu' },
+    { id: 6, name: 'Fiona Green', email: 'fiona@school.edu' }
+  ];
+
+  const upcomingAssignments = [
+    { class: 'Math 101', title: 'Chapter 3 Quiz', due: 'Nov 15', submissions: '18/24' },
+    { class: 'Algebra II', title: 'Linear Equations HW', due: 'Nov 16', submissions: '12/20' },
+    { class: 'Calculus', title: 'Derivatives Test', due: 'Nov 17', submissions: '8/18' }
+  ];
+
+  const announcements = [
+    { title: 'School Holiday', date: 'Nov 10', content: 'No classes on November 23rd for Thanksgiving' },
+    { title: 'Parent-Teacher Conferences', date: 'Nov 5', content: 'Sign up sheets available in faculty lounge' }
+  ];
+
+  const aiInsights = [
+    { 
+      title: 'Performance Trends', 
+      value: '+12%', 
+      description: 'Overall improvement in class performance compared to last month', 
+      color: '#10b981',
+      bg: '#ecfdf5',
+      icon: <TrendUpIcon />
+    },
+    { 
+      title: 'At-Risk Students', 
+      value: '3', 
+      description: 'Students showing signs of falling behind based on recent assessments', 
+      color: '#ef4444',
+      bg: '#fef2f2',
+      icon: <AlertIcon />
+    },
+    { 
+      title: 'Engagement Score', 
+      value: '84/100', 
+      description: 'Class participation and assignment completion metrics', 
+      color: '#4f46e5',
+      bg: '#eef2ff',
+      icon: <ChartIcon />
+    }
+  ];
+
+  const handleTakeAttendance = () => {
+    setActiveTab('attendance');
+  };
+
+  const handleStatusChange = (studentId, status) => {
+    setAttendanceStatus(prev => ({
+      ...prev,
+      [studentId]: status
+    }));
+  };
+
+  const handleSaveAttendance = () => {
+    alert('Attendance saved successfully!');
+    // In a real app, you would send this data to your backend
+  };
+
+  const handleGenerateReport = () => {
+    navigate('/ai-report-generator');
+  };
 
   return (
     <DashboardContainer>
-      {/* Header */}
       <DashboardHeader>
-        <h1 style={{ fontSize: '1.8rem', color: '#1e293b', margin: 0 }}>Teacher Dashboard</h1>
+        <HeaderTitle>Teacher Dashboard</HeaderTitle>
         <HeaderActions>
           <NotificationButton>
-            <span role="img" aria-label="Notifications">🔔</span>
+            <NotificationIcon />
             <Badge>3</Badge>
           </NotificationButton>
           <UserProfile>
-            <span style={{ fontWeight: '500' }}>Ms. Rodriguez</span>
+            <span>Ms. Rodriguez</span>
             <UserAvatar>JR</UserAvatar>
           </UserProfile>
         </HeaderActions>
       </DashboardHeader>
 
-      {/* Navigation Tabs */}
       <DashboardTabs>
         <TabButton 
-          className={activeTab === 'overview' ? 'active' : ''} 
+          $active={activeTab === 'overview'}
           onClick={() => setActiveTab('overview')}
         >
           Overview
         </TabButton>
         <TabButton 
-          className={activeTab === 'classes' ? 'active' : ''} 
+          $active={activeTab === 'classes'}
           onClick={() => setActiveTab('classes')}
         >
           Classes
         </TabButton>
         <TabButton 
-          className={activeTab === 'assignments' ? 'active' : ''} 
+          $active={activeTab === 'attendance'}
+          onClick={() => setActiveTab('attendance')}
+        >
+          Attendance
+        </TabButton>
+        <TabButton 
+          $active={activeTab === 'assignments'}
           onClick={() => setActiveTab('assignments')}
         >
           Assignments
         </TabButton>
         <TabButton 
-          className={activeTab === 'grades' ? 'active' : ''} 
+          $active={activeTab === 'grades'}
           onClick={() => setActiveTab('grades')}
         >
           Grades
         </TabButton>
       </DashboardTabs>
 
-      {/* Main Content Area */}
       <DashboardMain>
         {activeTab === 'overview' && (
           <>
-            {/* Stats Cards */}
-            <OverviewGrid>
-              <StatsCard color="#3b82f6">
-                <StatLabel>Total Students</StatLabel>
-                <StatValue>62</StatValue>
-                <StatChange positive>
-                  <span>↑</span> 5% from last term
-                </StatChange>
-              </StatsCard>
-              
-              <StatsCard color="#10b981">
-                <StatLabel>Assignments Due</StatLabel>
-                <StatValue>3</StatValue>
-                <StatChange>
-                  <span>2 to grade</span>
-                </StatChange>
-              </StatsCard>
-              
-              <StatsCard color="#6366f1">
-                <StatLabel>Attendance Rate</StatLabel>
-                <StatValue>94%</StatValue>
-                <StatChange positive>
-                  <span>↑</span> Consistent
-                </StatChange>
-              </StatsCard>
-            </OverviewGrid>
+            <StatsGrid>
+              {stats.map((stat, index) => (
+                <StatCard key={index}>
+                  <StatValue>{stat.value}</StatValue>
+                  <StatLabel>{stat.label}</StatLabel>
+                  <StatTrend $positive={stat.positive}>
+                    {stat.trend}
+                  </StatTrend>
+                </StatCard>
+              ))}
+            </StatsGrid>
 
-            {/* Quick Actions */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Quick Actions</CardTitle>
-              </CardHeader>
-              <ActionButtons>
-                <ActionButton primary>
+            <Section>
+              <SectionHeader>
+                <SectionTitle>Quick Actions</SectionTitle>
+              </SectionHeader>
+              <QuickActions>
+                <ActionButton $primary>
                   <AssignmentIcon />
-                  Create Assignment
+                  New Assignment
+                </ActionButton>
+                <ActionButton onClick={handleTakeAttendance}>
+                  <AttendanceIcon />
+                  Take Attendance
                 </ActionButton>
                 <ActionButton>
                   <GradeIcon />
@@ -905,93 +839,147 @@ const TeacherDashboard = () => {
                   <AnnouncementIcon />
                   Post Announcement
                 </ActionButton>
-                <ActionButton>
-                  <CalendarIcon />
-                  Add Event
-                </ActionButton>
-              </ActionButtons>
-            </Card>
+              </QuickActions>
+            </Section>
 
-            {/* Cards Grid */}
-            <CardGrid>
-              {/* Upcoming Classes */}
-              <Card>
-                <CardHeader>
-                  <CardTitle>Today's Classes</CardTitle>
-                  <ViewAllLink>View All</ViewAllLink>
-                </CardHeader>
-                <ClassList>
-                  {upcomingClasses.map(cls => (
-                    <ClassItem key={cls.id}>
-                      <ClassInfo>
-                        <ClassName>{cls.name}</ClassName>
-                        <ClassMeta>{cls.room} • {cls.period}</ClassMeta>
-                      </ClassInfo>
-                      <ClassTime>{cls.time}</ClassTime>
-                    </ClassItem>
-                  ))}
-                </ClassList>
-              </Card>
+            <AIIntegration>
+              <AITitle>
+                <AIIcon />
+                <SectionTitle>AI Insights</SectionTitle>
+              </AITitle>
+              <AIInsights>
+                {aiInsights.map((insight, index) => (
+                  <AIInsightCard key={index} $color={insight.color} $bg={insight.bg}>
+                    <AIInsightTitle>
+                      {insight.icon} {insight.title}
+                    </AIInsightTitle>
+                    <AIInsightValue $color={insight.color}>
+                      {insight.value}
+                    </AIInsightValue>
+                    <AIInsightDesc>
+                      {insight.description}
+                    </AIInsightDesc>
+                    <ViewAll>
+                      View details <ChevronRight />
+                    </ViewAll>
+                  </AIInsightCard>
+                ))}
+              </AIInsights>
+              <AIButton onClick={handleGenerateReport}>
+                <RocketIcon />
+                Generate Comprehensive Report
+              </AIButton>
+            </AIIntegration>
 
-              {/* Upcoming Assignments */}
-              <Card>
-                <CardHeader>
-                  <CardTitle>Upcoming Assignments</CardTitle>
-                  <ViewAllLink>View All</ViewAllLink>
-                </CardHeader>
-                <ClassList>
-                  {upcomingAssignments.map(assignment => (
-                    <ClassItem key={assignment.id}>
-                      <ClassInfo>
-                        <ClassName>{assignment.title}</ClassName>
-                        <ClassMeta>{assignment.class} • Due {assignment.dueDate}</ClassMeta>
-                      </ClassInfo>
-                      <ClassTime>{assignment.submissions}/{assignment.total}</ClassTime>
-                    </ClassItem>
-                  ))}
-                </ClassList>
-              </Card>
+            <Section>
+              <SectionHeader>
+                <SectionTitle>Today's Classes</SectionTitle>
+                <ViewAll>
+                  View all <ChevronRight />
+                </ViewAll>
+              </SectionHeader>
+              <ClassesGrid>
+                {classes.map((cls, index) => (
+                  <ClassCard key={index}>
+                    <ClassHeader>
+                      <ClassTitle>{cls.name}</ClassTitle>
+                      <ClassBadge>{cls.period}</ClassBadge>
+                    </ClassHeader>
+                    <ClassStats>
+                      <ClassStat>
+                        <ClassStatValue>{cls.students}</ClassStatValue>
+                        <ClassStatLabel>Students</ClassStatLabel>
+                      </ClassStat>
+                      <ClassStat>
+                        <ClassStatValue>{cls.assignments}</ClassStatValue>
+                        <ClassStatLabel>Assignments</ClassStatLabel>
+                      </ClassStat>
+                      <ClassStat>
+                        <ClassStatValue>{cls.attendance}</ClassStatValue>
+                        <ClassStatLabel>Attendance</ClassStatLabel>
+                      </ClassStat>
+                    </ClassStats>
+                    <ClassActions>
+                      <SmallButton>Roster</SmallButton>
+                      <SmallButton $primary>View</SmallButton>
+                    </ClassActions>
+                  </ClassCard>
+                ))}
+              </ClassesGrid>
+            </Section>
 
-              {/* Recent Announcements */}
-              <Card>
-                <CardHeader>
-                  <CardTitle>Recent Announcements</CardTitle>
-                  <ViewAllLink>View All</ViewAllLink>
-                </CardHeader>
-                <AnnouncementList>
-                  {recentAnnouncements.map(announcement => (
-                    <AnnouncementItem key={announcement.id}>
-                      <AnnouncementTitle>
-                        <span role="img" aria-label="Announcement">📢</span>
-                        {announcement.title}
-                      </AnnouncementTitle>
-                      <AnnouncementDate>{announcement.date}</AnnouncementDate>
-                      <AnnouncementContent>{announcement.content}</AnnouncementContent>
-                    </AnnouncementItem>
-                  ))}
-                </AnnouncementList>
-              </Card>
-            </CardGrid>
+            <Section>
+              <SectionHeader>
+                <SectionTitle>Upcoming Assignments</SectionTitle>
+                <ViewAll>
+                  View all <ChevronRight />
+                </ViewAll>
+              </SectionHeader>
+              <ClassesGrid>
+                {upcomingAssignments.map((assignment, index) => (
+                  <ClassCard key={index}>
+                    <ClassHeader>
+                      <ClassTitle>{assignment.title}</ClassTitle>
+                      <ClassBadge>{assignment.class}</ClassBadge>
+                    </ClassHeader>
+                    <div style={{ margin: '16px 0' }}>
+                      <div style={{ fontSize: '0.95rem', color: '#6b7280' }}>
+                        Due {assignment.due}
+                      </div>
+                      <div style={{ fontSize: '0.95rem', marginTop: '8px', fontWeight: '500' }}>
+                        {assignment.submissions} submitted
+                      </div>
+                    </div>
+                    <ClassActions>
+                      <SmallButton>Grade</SmallButton>
+                      <SmallButton>Edit</SmallButton>
+                    </ClassActions>
+                  </ClassCard>
+                ))}
+              </ClassesGrid>
+            </Section>
+
+            <Section>
+              <SectionHeader>
+                <SectionTitle>Recent Announcements</SectionTitle>
+                <ViewAll>
+                  View all <ChevronRight />
+                </ViewAll>
+              </SectionHeader>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                {announcements.map((announcement, index) => (
+                  <div key={index} style={{ padding: '16px', borderBottom: '1px solid #f3f4f6' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
+                      <div style={{ fontWeight: '600' }}>{announcement.title}</div>
+                      <div style={{ fontSize: '0.9rem', color: '#6b7280' }}>{announcement.date}</div>
+                    </div>
+                    <div style={{ fontSize: '0.95rem', color: '#6b7280' }}>
+                      {announcement.content}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </Section>
           </>
         )}
 
         {activeTab === 'classes' && (
-          <ClassesTab>
-            <CardHeader>
-              <CardTitle>Your Classes</CardTitle>
-              <Button primary>
+          <Section>
+            <SectionHeader>
+              <SectionTitle>Your Classes</SectionTitle>
+              <SmallButton $primary>
                 <PlusIcon />
                 Add Class
-              </Button>
-            </CardHeader>
-            <ClassCards>
-              {classes.map(cls => (
-                <ClassCard key={cls.id}>
-                  <ClassCardHeader>
-                    <ClassCardTitle>{cls.name}</ClassCardTitle>
-                    <ClassCardBadge>{cls.period}</ClassCardBadge>
-                  </ClassCardHeader>
-                  <ClassCardStats>
+              </SmallButton>
+            </SectionHeader>
+            <ClassesGrid>
+              {classes.map((cls, index) => (
+                <ClassCard key={index}>
+                  <ClassHeader>
+                    <ClassTitle>{cls.name}</ClassTitle>
+                    <ClassBadge>{cls.period}</ClassBadge>
+                  </ClassHeader>
+                  <ClassStats>
                     <ClassStat>
                       <ClassStatValue>{cls.students}</ClassStatValue>
                       <ClassStatLabel>Students</ClassStatLabel>
@@ -1001,151 +989,99 @@ const TeacherDashboard = () => {
                       <ClassStatLabel>Assignments</ClassStatLabel>
                     </ClassStat>
                     <ClassStat>
-                      <ClassStatValue>94%</ClassStatValue>
+                      <ClassStatValue>{cls.attendance}</ClassStatValue>
                       <ClassStatLabel>Attendance</ClassStatLabel>
                     </ClassStat>
-                  </ClassCardStats>
+                  </ClassStats>
                   <ClassActions>
-                    <ClassActionButton>Roster</ClassActionButton>
-                    <ClassActionButton>Grades</ClassActionButton>
-                    <ClassActionButton primary>View</ClassActionButton>
+                    <SmallButton>Roster</SmallButton>
+                    <SmallButton onClick={handleTakeAttendance}>
+                      Attendance
+                    </SmallButton>
+                    <SmallButton $primary>View</SmallButton>
                   </ClassActions>
                 </ClassCard>
               ))}
-            </ClassCards>
-          </ClassesTab>
+            </ClassesGrid>
+          </Section>
         )}
 
-        {activeTab === 'assignments' && (
-          <AssignmentsTab>
-            <AssignmentsHeader>
-              <CardTitle>Assignments</CardTitle>
-              <CreateButton>
-                <PlusIcon />
-                Create Assignment
-              </CreateButton>
-            </AssignmentsHeader>
-            
-            <AssignmentTabs>
-              <AssignmentTabButton 
-                active={activeAssignmentTab === 'upcoming'}
-                onClick={() => setActiveAssignmentTab('upcoming')}
-              >
-                Upcoming
-              </AssignmentTabButton>
-              <AssignmentTabButton 
-                active={activeAssignmentTab === 'past'}
-                onClick={() => setActiveAssignmentTab('past')}
-              >
-                Past Due
-              </AssignmentTabButton>
-              <AssignmentTabButton 
-                active={activeAssignmentTab === 'graded'}
-                onClick={() => setActiveAssignmentTab('graded')}
-              >
-                Graded
-              </AssignmentTabButton>
-            </AssignmentTabs>
-            
-            <AssignmentsList>
-              {upcomingAssignments.map(assignment => (
-                <AssignmentCard key={assignment.id}>
-                  <AssignmentInfo>
-                    <AssignmentTitle>{assignment.title}</AssignmentTitle>
-                    <AssignmentMeta>
-                      <AssignmentClass>
-                        <span role="img" aria-label="Class">🏫</span>
-                        {assignment.class}
-                      </AssignmentClass>
-                      <AssignmentDueDate>
-                        <span role="img" aria-label="Due date">⏰</span>
-                        Due {assignment.dueDate}
-                      </AssignmentDueDate>
-                    </AssignmentMeta>
-                  </AssignmentInfo>
-                  <AssignmentStats>
-                    <ProgressContainer>
-                      <ProgressText>
-                        {assignment.submissions}/{assignment.total} submitted
-                      </ProgressText>
-                      <ProgressBar>
-                        <ProgressFill percentage={(assignment.submissions / assignment.total) * 100} />
-                      </ProgressBar>
-                    </ProgressContainer>
-                  </AssignmentStats>
-                  <AssignmentActions>
-                    <GradeButton>
-                      <GradeIcon />
-                      Grade
-                    </GradeButton>
-                    <EditButton>
-                      <AssignmentIcon />
-                      Edit
-                    </EditButton>
-                  </AssignmentActions>
-                </AssignmentCard>
-              ))}
-            </AssignmentsList>
-          </AssignmentsTab>
-        )}
-
-        {activeTab === 'grades' && (
-          <GradesTab>
-            <GradebookControls>
-              <ControlGroup>
-                <Select>
+        {activeTab === 'attendance' && (
+          <AttendanceContainer>
+            <AttendanceHeader>
+              <AttendanceTitle>Take Attendance</AttendanceTitle>
+              <AttendanceControls>
+                <ClassSelect 
+                  value={selectedClass}
+                  onChange={(e) => setSelectedClass(e.target.value)}
+                >
+                  <option value="">Select Class</option>
                   {classes.map(cls => (
-                    <option key={cls.id}>{cls.name}</option>
+                    <option key={cls.id} value={cls.id}>{cls.name} - {cls.period}</option>
                   ))}
-                </Select>
-                <Select>
-                  <option>All Assignments</option>
-                  <option>Chapter 3 Quiz</option>
-                  <option>Linear Equations HW</option>
-                  <option>Derivatives Test</option>
-                </Select>
-              </ControlGroup>
-              <ControlGroup>
-                <Button>
-                  <DownloadIcon />
-                  Export
-                </Button>
-                <Button primary>
-                  <PlusIcon />
-                  Add Grade
-                </Button>
-              </ControlGroup>
-            </GradebookControls>
-            
-            <GradebookTableContainer>
-              <GradebookTable>
-                <thead>
-                  <tr>
-                    <TableHeader>Student</TableHeader>
-                    <TableHeader>Math</TableHeader>
-                    <TableHeader>Science</TableHeader>
-                    <TableHeader>English</TableHeader>
-                    <TableHeader>Average</TableHeader>
-                  </tr>
-                </thead>
-                <tbody>
-                  {studentPerformance.map((student, index) => {
-                    const average = Math.round((student.math + student.science + student.english) / 3);
-                    return (
-                      <TableRow key={index}>
+                </ClassSelect>
+                <DatePicker 
+                  type="date" 
+                  value={attendanceDate}
+                  onChange={(e) => setAttendanceDate(e.target.value)}
+                />
+              </AttendanceControls>
+            </AttendanceHeader>
+
+            {selectedClass && (
+              <>
+                <AttendanceTable>
+                  <thead>
+                    <tr>
+                      <TableHeader>Student Name</TableHeader>
+                      <TableHeader>Email</TableHeader>
+                      <TableHeader>Status</TableHeader>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {students.map(student => (
+                      <tr key={student.id}>
                         <TableCell>{student.name}</TableCell>
-                        <GradeCell grade={student.math}>{student.math}</GradeCell>
-                        <GradeCell grade={student.science}>{student.science}</GradeCell>
-                        <GradeCell grade={student.english}>{student.english}</GradeCell>
-                        <AverageCell>{average}</AverageCell>
-                      </TableRow>
-                    );
-                  })}
-                </tbody>
-              </GradebookTable>
-            </GradebookTableContainer>
-          </GradesTab>
+                        <TableCell>{student.email}</TableCell>
+                        <TableCell>
+                          <div style={{ display: 'flex', gap: '8px' }}>
+                            <StatusButton 
+                              $status="present"
+                              onClick={() => handleStatusChange(student.id, 'present')}
+                              $active={attendanceStatus[student.id] === 'present'}
+                            >
+                              Present
+                            </StatusButton>
+                            <StatusButton 
+                              $status="late"
+                              onClick={() => handleStatusChange(student.id, 'late')}
+                              $active={attendanceStatus[student.id] === 'late'}
+                            >
+                              Late
+                            </StatusButton>
+                            <StatusButton 
+                              $status="absent"
+                              onClick={() => handleStatusChange(student.id, 'absent')}
+                              $active={attendanceStatus[student.id] === 'absent'}
+                            >
+                              Absent
+                            </StatusButton>
+                          </div>
+                        </TableCell>
+                      </tr>
+                    ))}
+                  </tbody>
+                </AttendanceTable>
+                <SaveButton onClick={handleSaveAttendance}>
+                  <SaveIcon />
+                  Save Attendance
+                </SaveButton>
+              </>
+            )}
+          </AttendanceContainer>
         )}
+
+        {/* Other tabs (assignments, grades) would be implemented similarly */}
       </DashboardMain>
     </DashboardContainer>
   );
