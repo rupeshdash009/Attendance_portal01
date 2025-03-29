@@ -13,7 +13,7 @@ function Signup() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await axios.post("https://attendance-backend12-production.up.railway.app/api/auth/signup", user);
+      await axios.post("http://localhost:5000/api/auth/signup", user);
       alert("Signup Successful! Please login.");
       navigate("/login");
     } catch (error) {
