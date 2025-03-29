@@ -13,7 +13,7 @@ function Login() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const res = await axios.post("http://localhost:5000/api/auth/login", user);
+      const res = await axios.post("https://attendance-backend12-production.up.railway.app/api/auth/login", user);
       localStorage.setItem("token", res.data.token);
       alert("Login Successful!");
       navigate("/dashboard");
