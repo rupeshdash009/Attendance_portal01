@@ -82,7 +82,7 @@ const SeatBooking = () => {
       }
     } catch (error) {
       console.error("Error booking seat:", error);
-      setError("You are already book a seat");
+      setError("Something went wrong");
     } finally {
       setLoading(false);
     }
