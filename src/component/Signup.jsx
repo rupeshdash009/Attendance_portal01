@@ -13,7 +13,8 @@ function Signup() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await axios.post("https://attendance-backend12.onrender.com/api/auth/signup", user);
+      const response =  await axios.post("https://attendance-backend12.onrender.com/api/auth/signup", user);
+      console.log("data", response.data)
       alert("Signup Successful! Please login.");
       navigate("/login");
     } catch (error) {
