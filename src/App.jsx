@@ -17,6 +17,8 @@ import Attendance from "./component/Attendance";
 import Login from "./component/Login";
 import Signup from "./component/Signup";
 import Dashboard from "./component/Dashboard";
+import StudentProfile from "./component/profile/StudentProfile ";
+import TeacherDashboard from "./component/TeacherDashboard";
 
 
 
@@ -32,11 +34,15 @@ function App() {
         {/* <Route path="/features" element={<Features />} /> */}
         <Route path="/seatbooking" element={<Seatbooking />} />
         <Route path="/bookingForm" element={<BookingForm />} />
-        <Route path="/attendance" element={<Attendance />} />
+        <Route path="/Attendance" element={<Attendance />} />
         <Route path="/Login" element={<Login />} />
         <Route path="/Signup" element={<Signup />} />
         <Route path="/Dashboard" element={<Dashboard />} />
-      
+        <Route path="/profile" element={<StudentProfile />} />
+        <Route path="/Navbar" element={<Navbar />} />
+        <Route path="/TeacherDashboard" element={<TeacherDashboard />} />
+
+       
 
         
 
