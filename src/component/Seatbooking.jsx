@@ -67,7 +67,7 @@ const SeatBooking = () => {
 
     setLoading(true);
     try {
-      const response = await axios.post("https://attendance-backend12.onrender.com/api/bookings/book-seat", {
+      const response = await axios.post("http://localhost:5000/api/bookings/book-seat", {
         ...formData,
         seat: selectedSeat,
         course,
