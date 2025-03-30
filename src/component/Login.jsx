@@ -13,7 +13,7 @@ function Login() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const res = await axios.post("http://localhost:5000/api/auth/login", user);
+      const res = await axios.post("https://attendance-portal01.vercel.app/api/auth/login", user);
       console.log(" user login data", res.data);
       localStorage.setItem("token", res.data.token);
       alert("Login Successful!");
