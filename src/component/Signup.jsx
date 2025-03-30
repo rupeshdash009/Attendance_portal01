@@ -13,14 +13,16 @@ function Signup() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response =  await axios.post("https://attendance-backend12.onrender.com/api/auth/signup", user);
-      console.log("data", response.data)
+      const response = await axios.post("http://localhost:5000/api/auth/signup", user); // ✅ Fixed URL (lowercase)
+      console.log("data", response.data);
       alert("Signup Successful! Please login.");
       navigate("/login");
     } catch (error) {
+      console.error("Signup error:", error);
       alert(error.response?.data?.message || "Signup failed");
     }
   };
+  
 
   return (
     <div className="flex justify-center items-center min-h-screen bg-gray-100">
