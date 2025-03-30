@@ -49,6 +49,11 @@ const SeatBooking = () => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
+  const validateEmail = (email) => {
+    const regex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    return regex.test(email);
+  };
+
   const handleBooking = async (e) => {
     e.preventDefault();
     const currentYear = new Date().getFullYear();
@@ -60,10 +65,16 @@ const SeatBooking = () => {
     setPassoutYearError("");
 
     if (formData.percentage12th < 45) {
-      setEligibilityError("Sorry, you are not eligible for seat booking.");
+      setEligibilityError("Sorry, you are not eligible for seat booking due to low percentage.");
       return;
     }
     setEligibilityError("");
+
+    if (!validateEmail(formData.email)) {
+      setError("Invalid email. Please enter a valid email address.");
+      return;
+    }
+    setError("");
 
     setLoading(true);
     try {
@@ -72,7 +83,7 @@ const SeatBooking = () => {
         seat: selectedSeat,
         course,
       });
-      console.log("seatbooked", response.data);
+      console.log("Seat booked", response.data);
       if (response.status === 201) {
         setBookedSeats([...bookedSeats, selectedSeat]);
         setShowForm(false);
@@ -82,7 +93,7 @@ const SeatBooking = () => {
       }
     } catch (error) {
       console.error("Error booking seat:", error);
-      setError("email is already exits");
+      setError("Something went wrong");
     } finally {
       setLoading(false);
     }

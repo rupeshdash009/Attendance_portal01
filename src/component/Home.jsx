@@ -68,7 +68,7 @@ const Home = () => {
           <h1 className="text-6xl font-extrabold tracking-tight drop-shadow-md">Seamless Attendance Management</h1>
           <p className="mt-4 text-lg text-gray-200">Empowering students and teachers with real-time tracking.</p>
           <button className="mt-6 bg-indigo-600 text-white px-8 py-4 rounded-lg font-semibold shadow-lg hover:bg-indigo-700 transition duration-300" onClick={() => navigate('/login')}>
-            Access Portal
+            Get Start
           </button>
         </div>
       </section>

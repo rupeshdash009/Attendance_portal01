@@ -1,5 +1,10 @@
 import { useState, useEffect } from 'react';
 import styled from 'styled-components';
+import { Bar } from 'react-chartjs-2';
+import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend } from 'chart.js';
+
+// Register ChartJS components
+ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
 // ========== STYLED COMPONENTS ==========
 const DashboardContainer = styled.div`
@@ -309,6 +314,29 @@ const SubjectSelect = styled.select`
   }
 `;
 
+const FilterSelect = styled.select`
+  padding: 10px 16px;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+  background: white;
+  font-size: 0.95rem;
+  color: #111827;
+  cursor: pointer;
+  transition: all 0.2s;
+  min-width: 120px;
+  font-weight: 500;
+
+  &:hover {
+    border-color: #d1d5db;
+  }
+
+  &:focus {
+    outline: none;
+    border-color: #4f46e5;
+    box-shadow: 0 0 0 2px #eef2ff;
+  }
+`;
+
 const SearchInput = styled.input`
   padding: 10px 16px;
   border-radius: 8px;
@@ -499,6 +527,48 @@ const SummaryLabel = styled.div`
   color: #6b7280;
 `;
 
+const FiltersContainer = styled.div`
+  display: flex;
+  gap: 16px;
+  margin-top: 16px;
+  flex-wrap: wrap;
+`;
+
+const FilterGroup = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+`;
+
+const FilterLabel = styled.label`
+  font-size: 0.85rem;
+  color: #6b7280;
+  font-weight: 500;
+`;
+
+const PeriodSelect = styled.select`
+  padding: 10px 16px;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+  background: white;
+  font-size: 0.95rem;
+  color: #111827;
+  cursor: pointer;
+  transition: all 0.2s;
+  min-width: 150px;
+  font-weight: 500;
+
+  &:hover {
+    border-color: #d1d5db;
+  }
+
+  &:focus {
+    outline: none;
+    border-color: #4f46e5;
+    box-shadow: 0 0 0 2px #eef2ff;
+  }
+`;
+
 const ModalOverlay = styled.div`
   position: fixed;
   top: 0;
@@ -570,27 +640,13 @@ const EmptyState = styled.div`
   color: #6b7280;
 `;
 
-const ClassCard = styled.div`
+const ChartContainer = styled.div`
   background: white;
   border-radius: 12px;
-  padding: 20px;
+  padding: 24px;
+  margin-top: 24px;
   box-shadow: 0 1px 3px rgba(0,0,0,0.05);
   border: 1px solid #e5e7eb;
-  transition: all 0.2s;
-  cursor: pointer;
-  
-  &:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-    border-color: #d1d5db;
-  }
-`;
-
-const ClassGrid = styled.div`
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 20px;
-  margin-top: 20px;
 `;
 
 // ========== ICONS ==========
@@ -624,29 +680,15 @@ const CloseIcon = () => (
   </svg>
 );
 
-const AssignmentIcon = () => (
-  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <path d="M14 2H6C5.46957 2 4.96086 2.21071 4.58579 2.58579C4.21071 2.96086 4 3.46957 4 4V20C4 20.5304 4.21071 21.0391 4.58579 21.4142C4.96086 21.7893 5.46957 22 6 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V8L14 2Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-    <path d="M14 2V8H20" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-    <path d="M16 13H8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-    <path d="M16 17H8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-    <path d="M10 9H9H8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-  </svg>
-);
-
-const GradebookIcon = () => (
-  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <path d="M4 19.5C4 18.837 4.26339 18.2011 4.73223 17.7322C5.20107 17.2634 5.83696 17 6.5 17H20" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-    <path d="M6.5 2H20V22H6.5C5.83696 22 5.20107 21.7366 4.73223 21.2678C4.26339 20.7989 4 20.163 4 19.5V4.5C4 3.83696 4.26339 3.20107 4.73223 2.73223C5.20107 2.26339 5.83696 2 6.5 2Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-  </svg>
-);
-
 // ========== COMPONENTS ==========
-const BBABCAttendance = ({ program = 'BBA' }) => {
+const BBABCAttendance = ({ program = 'BBA', user }) => {
   const [attendanceDate, setAttendanceDate] = useState(new Date().toISOString().split('T')[0]);
   const [selectedSubject, setSelectedSubject] = useState('');
   const [attendanceStatus, setAttendanceStatus] = useState({});
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedYear, setSelectedYear] = useState('1');
+  const [selectedSemester, setSelectedSemester] = useState('1');
+  const [selectedPeriod, setSelectedPeriod] = useState('1');
 
   // Sample data for BBA/BCA
   const subjects = program === 'BBA' ? [
@@ -661,23 +703,52 @@ const BBABCAttendance = ({ program = 'BBA' }) => {
     { id: 'bca104', name: 'Web Technologies', code: 'BCA-104' }
   ];
 
-  const students = [
-    { id: 1, name: 'Aarav Sharma', rollNo: program === 'BBA' ? 'BBA2023001' : 'BCA2023001', batch: '2023', semester: '1st' },
-    { id: 2, name: 'Priya Patel', rollNo: program === 'BBA' ? 'BBA2023002' : 'BCA2023002', batch: '2023', semester: '1st' },
-    { id: 3, name: 'Rahul Gupta', rollNo: program === 'BBA' ? 'BBA2023003' : 'BCA2023003', batch: '2023', semester: '1st' },
-    { id: 4, name: 'Neha Singh', rollNo: program === 'BBA' ? 'BBA2023004' : 'BCA2023004', batch: '2023', semester: '1st' },
-    { id: 5, name: 'Vikram Joshi', rollNo: program === 'BBA' ? 'BBA2023005' : 'BCA2023005', batch: '2023', semester: '1st' },
-    { id: 6, name: 'Ananya Reddy', rollNo: program === 'BBA' ? 'BBA2023006' : 'BCA2023006', batch: '2023', semester: '1st' }
+  const periods = [
+    { id: '1', name: '1st Period (8:00-9:15)' },
+    { id: '2', name: '2nd Period (9:30-10:45)' },
+    { id: '3', name: '3rd Period (11:00-12:15)' },
+    { id: '4', name: '4th Period (12:30-1:45)' },
+    { id: '5', name: '5th Period (2:00-3:15)' }
   ];
 
+  // Generate students based on program, year and semester
+  const generateStudents = (program, year, semester) => {
+    const firstNames = ['Aarav', 'Priya', 'Rahul', 'Neha', 'Vikram', 'Ananya', 'Sanjay', 'Meera', 'Aditya', 'Kavita'];
+    const lastNames = ['Sharma', 'Patel', 'Gupta', 'Singh', 'Joshi', 'Reddy', 'Kumar', 'Verma', 'Malhotra', 'Choudhary'];
+    
+    // Adjust student count based on year (more students in earlier years)
+    const baseCount = program === 'BBA' ? 60 : 30;
+    const count = Math.floor(baseCount * (1 - (year - 1) * 0.15));
+    
+    return Array.from({ length: count }, (_, i) => {
+      const firstName = firstNames[Math.floor(Math.random() * firstNames.length)];
+      const lastName = lastNames[Math.floor(Math.random() * lastNames.length)];
+      
+      return {
+        id: i + 1,
+        name: `${firstName} ${lastName}`,
+        rollNo: `${program}${year}${semester}${(i + 1).toString().padStart(3, '0')}`,
+        year,
+        semester,
+        email: `${firstName.toLowerCase()}.${lastName.toLowerCase()}@${program.toLowerCase()}.edu`
+      };
+    });
+  };
+
+  const [students, setStudents] = useState([]);
+
   useEffect(() => {
+    // Initialize students based on program, year and semester
+    const newStudents = generateStudents(program, selectedYear, selectedSemester);
+    setStudents(newStudents);
+    
     // Initialize attendance status
     const initialStatus = {};
-    students.forEach(student => {
+    newStudents.forEach(student => {
       initialStatus[student.id] = 'present';
     });
     setAttendanceStatus(initialStatus);
-  }, []);
+  }, [program, selectedYear, selectedSemester]);
 
   const handleStatusChange = (studentId, status) => {
     setAttendanceStatus(prev => ({
@@ -687,7 +758,7 @@ const BBABCAttendance = ({ program = 'BBA' }) => {
   };
 
   const handleSaveAttendance = () => {
-    alert(`${program} Attendance saved successfully for ${selectedSubject} on ${attendanceDate}`);
+    alert(`${program} Attendance saved successfully for:\nSubject: ${selectedSubject}\nDate: ${attendanceDate}\nYear: ${selectedYear}\nSemester: ${selectedSemester}\nPeriod: ${selectedPeriod}\nRecorded by: ${user.name}`);
   };
 
   const filteredStudents = students.filter(student => 
@@ -700,6 +771,41 @@ const BBABCAttendance = ({ program = 'BBA' }) => {
   const absentCount = Object.values(attendanceStatus).filter(status => status === 'absent').length;
   const lateCount = Object.values(attendanceStatus).filter(status => status === 'late').length;
   const attendancePercentage = ((presentCount / students.length) * 100).toFixed(1);
+
+  // Chart data
+  const chartData = {
+    labels: ['Present', 'Absent', 'Late'],
+    datasets: [
+      {
+        label: 'Attendance Summary',
+        data: [presentCount, absentCount, lateCount],
+        backgroundColor: [
+          '#10b981',
+          '#ef4444',
+          '#f59e0b'
+        ],
+        borderColor: [
+          '#059669',
+          '#dc2626',
+          '#d97706'
+        ],
+        borderWidth: 1,
+      },
+    ],
+  };
+
+  const chartOptions = {
+    responsive: true,
+    plugins: {
+      legend: {
+        position: 'top',
+      },
+      title: {
+        display: true,
+        text: 'Attendance Distribution',
+      },
+    },
+  };
 
   return (
     <AttendanceContainer>
@@ -728,61 +834,106 @@ const BBABCAttendance = ({ program = 'BBA' }) => {
         </AttendanceControls>
       </AttendanceHeader>
 
+      <FiltersContainer>
+        <FilterGroup>
+          <FilterLabel>Academic Year</FilterLabel>
+          <FilterSelect
+            value={selectedYear}
+            onChange={(e) => setSelectedYear(e.target.value)}
+          >
+            {[1, 2, 3, 4].map(year => (
+              <option key={year} value={year}>{year} Year</option>
+            ))}
+          </FilterSelect>
+        </FilterGroup>
+
+        <FilterGroup>
+          <FilterLabel>Semester</FilterLabel>
+          <FilterSelect
+            value={selectedSemester}
+            onChange={(e) => setSelectedSemester(e.target.value)}
+          >
+            {[1, 2, 3, 4, 5, 6, 7, 8].map(sem => (
+              <option key={sem} value={sem}>{sem} Semester</option>
+            ))}
+          </FilterSelect>
+        </FilterGroup>
+
+        <FilterGroup>
+          <FilterLabel>Period</FilterLabel>
+          <PeriodSelect
+            value={selectedPeriod}
+            onChange={(e) => setSelectedPeriod(e.target.value)}
+          >
+            {periods.map(period => (
+              <option key={period.id} value={period.id}>{period.name}</option>
+            ))}
+          </PeriodSelect>
+        </FilterGroup>
+      </FiltersContainer>
+
       {selectedSubject && (
         <>
-          <SearchInput 
-            type="text" 
-            placeholder={`Search ${program} students...`}
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '24px' }}>
+            <SearchInput 
+              type="text" 
+              placeholder={`Search ${program} students...`}
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+            <div style={{ fontSize: '0.9rem', color: '#4b5563' }}>
+              Total Students: {students.length} | Showing: {filteredStudents.length}
+            </div>
+          </div>
 
-          <AttendanceTable>
-            <thead>
-              <tr>
-                <TableHeader>Student Details</TableHeader>
-                <TableHeader>Roll No</TableHeader>
-                <TableHeader>Batch/Semester</TableHeader>
-                <TableHeader>Attendance Status</TableHeader>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredStudents.map(student => (
-                <tr key={student.id}>
-                  <TableCell>
-                    <StudentInfo>
-                      <StudentAvatar>
-                        {student.name.split(' ').map(n => n[0]).join('')}
-                      </StudentAvatar>
-                      <div>
-                        <div style={{ fontWeight: 500 }}>{student.name}</div>
-                        <div style={{ fontSize: '0.8rem', color: '#6b7280' }}>
-                          {program === 'BBA' ? 'BBA Student' : 'BCA Student'}
-                        </div>
-                      </div>
-                    </StudentInfo>
-                  </TableCell>
-                  <TableCell>{student.rollNo}</TableCell>
-                  <TableCell>
-                    <div style={{ display: 'flex', gap: '8px' }}>
-                      <BatchIndicator>Batch: {student.batch}</BatchIndicator>
-                      <SemesterIndicator>Sem: {student.semester}</SemesterIndicator>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <StatusSelect
-                      value={attendanceStatus[student.id] || 'present'}
-                      onChange={(e) => handleStatusChange(student.id, e.target.value)}
-                    >
-                      <option value="present">Present</option>
-                      <option value="late">Late</option>
-                      <option value="absent">Absent</option>
-                    </StatusSelect>
-                  </TableCell>
+          <div style={{ maxHeight: '500px', overflowY: 'auto', marginTop: '16px' }}>
+            <AttendanceTable>
+              <thead>
+                <tr>
+                  <TableHeader>Student Details</TableHeader>
+                  <TableHeader>Roll No</TableHeader>
+                  <TableHeader>Year/Semester</TableHeader>
+                  <TableHeader>Attendance Status</TableHeader>
                 </tr>
-              ))}
-            </tbody>
-          </AttendanceTable>
+              </thead>
+              <tbody>
+                {filteredStudents.map(student => (
+                  <tr key={student.id}>
+                    <TableCell>
+                      <StudentInfo>
+                        <StudentAvatar>
+                          {student.name.split(' ').map(n => n[0]).join('')}
+                        </StudentAvatar>
+                        <div>
+                          <div style={{ fontWeight: 500 }}>{student.name}</div>
+                          <div style={{ fontSize: '0.8rem', color: '#6b7280' }}>
+                            {student.email}
+                          </div>
+                        </div>
+                      </StudentInfo>
+                    </TableCell>
+                    <TableCell>{student.rollNo}</TableCell>
+                    <TableCell>
+                      <div style={{ display: 'flex', gap: '8px' }}>
+                        <BatchIndicator>Year: {student.year}</BatchIndicator>
+                        <SemesterIndicator>Sem: {student.semester}</SemesterIndicator>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <StatusSelect
+                        value={attendanceStatus[student.id] || 'present'}
+                        onChange={(e) => handleStatusChange(student.id, e.target.value)}
+                      >
+                        <option value="present">Present</option>
+                        <option value="late">Late</option>
+                        <option value="absent">Absent</option>
+                      </StatusSelect>
+                    </TableCell>
+                  </tr>
+                ))}
+              </tbody>
+            </AttendanceTable>
+          </div>
 
           <AttendanceSummary>
             <SummaryCard>
@@ -803,6 +954,10 @@ const BBABCAttendance = ({ program = 'BBA' }) => {
             </SummaryCard>
           </AttendanceSummary>
 
+          <ChartContainer>
+            <Bar data={chartData} options={chartOptions} />
+          </ChartContainer>
+
           <SaveButton onClick={handleSaveAttendance}>
             <SaveIcon />
             Save {program} Attendance
@@ -816,86 +971,41 @@ const BBABCAttendance = ({ program = 'BBA' }) => {
 // ========== MAIN COMPONENT ==========
 const TeacherDashboard = () => {
   const [activeTab, setActiveTab] = useState('overview');
-  const [attendanceDate, setAttendanceDate] = useState(new Date().toISOString().split('T')[0]);
-  const [selectedClass, setSelectedClass] = useState('');
-  const [attendanceStatus, setAttendanceStatus] = useState({});
   const [showNotifications, setShowNotifications] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [showClassDetails, setShowClassDetails] = useState(false);
-  const [selectedClassDetails, setSelectedClassDetails] = useState(null);
   const [program, setProgram] = useState('BBA'); // 'BBA' or 'BCA'
+
+  // Mock user data - in a real app, this would come from your auth system
+  const [user, setUser] = useState({
+    name: "Teacher",
+    email: "j.rodriguez@school.edu",
+    role: "teacher"
+  });
 
   // Sample data
   const stats = [
-    { label: 'Total Students', value: '142', trend: '+5%' },
-    { label: 'Attendance Rate', value: '94%', trend: '+2%', positive: true },
-    { label: 'Classes Today', value: '3', trend: '2 completed' },
-    { label: 'Assignments Due', value: '5', trend: '3 graded' },
-  ];
-
-  const classes = [
-    { id: 'math101', name: 'Math 101', period: '1st Period', students: 24, time: '8:00 AM - 9:15 AM', room: 'Room 204' },
-    { id: 'algebra2', name: 'Algebra II', period: '3rd Period', students: 20, time: '10:45 AM - 12:00 PM', room: 'Room 205' },
-    { id: 'calculus', name: 'Calculus', period: '5th Period', students: 18, time: '1:30 PM - 2:45 PM', room: 'Room 206' }
-  ];
-
-  const students = [
-    { id: 1, name: 'Alice Johnson', email: 'alice@school.edu' },
-    { id: 2, name: 'Bob Smith', email: 'bob@school.edu' },
-    { id: 3, name: 'Charlie Brown', email: 'charlie@school.edu' },
-    { id: 4, name: 'Diana Prince', email: 'diana@school.edu' },
-    { id: 5, name: 'Ethan Hunt', email: 'ethan@school.edu' },
-    { id: 6, name: 'Fiona Green', email: 'fiona@school.edu' }
+    { label: 'Total Students', value: program === 'BBA' ? '60' : '30', trend: '+5%' },
+    { label: 'Attendance Rate', value: '94%', trend: '+2%', positive: true }
   ];
 
   const notifications = [
-    { id: 1, title: 'New assignment submitted', message: 'Alice Johnson submitted the Algebra homework', time: '10 minutes ago' },
-    { id: 2, title: 'Meeting reminder', message: 'Department meeting today at 3:00 PM', time: '1 hour ago' },
-    { id: 3, title: 'Attendance alert', message: '3 students marked absent in Math 101', time: 'Yesterday' }
+    { id: 1, title: 'New attendance record', message: 'Attendance marked for today', time: '10 minutes ago' },
+    { id: 2, title: 'Meeting reminder', message: 'Department meeting today at 3:00 PM', time: '1 hour ago' }
   ];
-
-  useEffect(() => {
-    // Initialize attendance status for demo purposes
-    const initialStatus = {};
-    students.forEach(student => {
-      initialStatus[student.id] = 'present';
-    });
-    setAttendanceStatus(initialStatus);
-  }, []);
 
   const handleTakeAttendance = () => {
     setActiveTab('attendance');
-  };
-
-  const handleStatusChange = (studentId, status) => {
-    setAttendanceStatus(prev => ({
-      ...prev,
-      [studentId]: status
-    }));
-  };
-
-  const handleSaveAttendance = () => {
-    alert('Attendance saved successfully!');
   };
 
   const toggleNotifications = () => {
     setShowNotifications(!showNotifications);
   };
 
-  const filteredStudents = students.filter(student => 
-    student.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    student.email.toLowerCase().includes(searchQuery.toLowerCase())
-  );
-
-  const viewClassDetails = (classId) => {
-    const classInfo = classes.find(cls => cls.id === classId);
-    setSelectedClassDetails(classInfo);
-    setShowClassDetails(true);
-  };
-
   const toggleProgram = () => {
     setProgram(program === 'BBA' ? 'BCA' : 'BBA');
   };
+
+  // Generate initials from user's name
+  const userInitials = user.name.split(' ').map(n => n[0]).join('');
 
   return (
     <DashboardContainer>
@@ -907,8 +1017,8 @@ const TeacherDashboard = () => {
             <Badge>{notifications.length}</Badge>
           </NotificationButton>
           <UserProfile>
-            <span>Ms. Rodriguez</span>
-            <UserAvatar>JR</UserAvatar>
+            <span>{user.name}</span>
+            <UserAvatar>{userInitials}</UserAvatar>
           </UserProfile>
         </HeaderActions>
       </DashboardHeader>
@@ -956,12 +1066,6 @@ const TeacherDashboard = () => {
         >
           Attendance
         </TabButton>
-        <TabButton 
-          $active={activeTab === 'classes'}
-          onClick={() => setActiveTab('classes')}
-        >
-          My Classes
-        </TabButton>
       </DashboardTabs>
 
       <DashboardMain>
@@ -988,16 +1092,7 @@ const TeacherDashboard = () => {
                   <AttendanceIcon />
                   Take Attendance
                 </ActionButton>
-                <ActionButton>
-                  <AssignmentIcon />
-                  Create Assignment
-                </ActionButton>
-                <ActionButton>
-                  <GradebookIcon />
-                  Enter Grades
-                </ActionButton>
-                <ActionButton onClick={toggleProgram}>
-                  <GradebookIcon />
+                <ActionButton onClick={toggleProgram} $primary>
                   Switch to {program === 'BBA' ? 'BCA' : 'BBA'}
                 </ActionButton>
               </QuickActions>
@@ -1006,50 +1101,9 @@ const TeacherDashboard = () => {
         )}
 
         {activeTab === 'attendance' && (
-          <BBABCAttendance program={program} />
-        )}
-
-        {activeTab === 'classes' && (
-          <Section>
-            <SectionHeader>
-              <SectionTitle>My Classes</SectionTitle>
-            </SectionHeader>
-            <ClassGrid>
-              {classes.map(cls => (
-                <ClassCard key={cls.id} onClick={() => viewClassDetails(cls.id)}>
-                  <h3 style={{ marginTop: 0 }}>{cls.name}</h3>
-                  <p style={{ color: '#6b7280', margin: '8px 0' }}>{cls.period}</p>
-                  <p style={{ margin: '8px 0' }}><strong>Students:</strong> {cls.students}</p>
-                </ClassCard>
-              ))}
-            </ClassGrid>
-          </Section>
+          <BBABCAttendance program={program} user={user} />
         )}
       </DashboardMain>
-
-      {showClassDetails && selectedClassDetails && (
-        <ModalOverlay onClick={() => setShowClassDetails(false)}>
-          <ModalContent onClick={e => e.stopPropagation()}>
-            <ModalHeader>
-              <ModalTitle>{selectedClassDetails.name}</ModalTitle>
-              <ModalCloseButton onClick={() => setShowClassDetails(false)}>
-                <CloseIcon />
-              </ModalCloseButton>
-            </ModalHeader>
-            <div>
-              <p><strong>Period:</strong> {selectedClassDetails.period}</p>
-              <p><strong>Time:</strong> {selectedClassDetails.time}</p>
-              <p><strong>Room:</strong> {selectedClassDetails.room}</p>
-              <p><strong>Students:</strong> {selectedClassDetails.students}</p>
-              <div style={{ marginTop: '24px' }}>
-                <ActionButton $primary style={{ width: '100%' }}>
-                  View Class Roster
-                </ActionButton>
-              </div>
-            </div>
-          </ModalContent>
-        </ModalOverlay>
-      )}
     </DashboardContainer>
   );
 };
