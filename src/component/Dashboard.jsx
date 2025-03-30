@@ -49,8 +49,8 @@ function Dashboard() {
         };
 
         const [userRes, attendanceRes] = await Promise.all([
-          axios.get("http://localhost:5000/api/auth/dashboard", { headers }),
-          axios.get("http://localhost:5000/api/attendance", { headers })
+          axios.get("https://attendance-backend12.onrender.com/api/auth/dashboard", { headers }),
+          axios.get("https://attendance-backend12.onrender.com/api/attendance", { headers })
         ]);
 
         setUser(userRes.data.user);

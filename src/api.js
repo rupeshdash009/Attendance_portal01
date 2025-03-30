@@ -2,8 +2,9 @@ import axios from 'axios';
 
 // 1. Axios Global Configuration
 const api = axios.create({
+  // eslint-disable-next-line no-undef
   baseURL: process.env.NODE_ENV === 'production'
-    ? 'https://api.yourdomain.com' // Production backend
+    ? 'https://attendance-backend12.onrender.com' // Production backend
     : 'http://localhost:5000',     // Local development
   withCredentials: true,           // Required for cookies
   headers: {
