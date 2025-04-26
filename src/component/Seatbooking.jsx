@@ -25,7 +25,7 @@ const SeatBooking = () => {
   useEffect(() => {
     const fetchBookedSeats = async () => {
       try {
-        const response = await axios.get(`https://attendance-backend12.onrender.com/api/bookings?course=${course}`);
+        const response = await axios.get(`https://attendance-backend12-production.up.railway.app/api/bookings?course=${course}`);
         if (response.data && Array.isArray(response.data)) {
           setBookedSeats(response.data.map((seat) => seat.seat));
         } else {
@@ -78,7 +78,7 @@ const SeatBooking = () => {
 
     setLoading(true);
     try {
-      const response = await axios.post("http://localhost:5000/api/bookings/book-seat", {
+      const response = await axios.post("https://attendance-backend12-production.up.railway.app/api/bookings", {
         ...formData,
         seat: selectedSeat,
         course,
