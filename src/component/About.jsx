@@ -54,7 +54,7 @@ const About = () => {
             className="p-8 rounded-lg shadow-lg bg-white text-gray-900" 
             whileHover={{ scale: 1.05 }}
           >
-            <h3 className="text-2xl font-semibold">AI-Powered Insights</h3>
+            <h3 className="text-2xl font-semibold"> Insights</h3>
             <p className="mt-2">Get detailed analytics and reports to track student performance.</p>
           </motion.div>
           <motion.div 

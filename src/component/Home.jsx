@@ -79,7 +79,7 @@ const Home = () => {
         <div className="mt-10 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {[{ icon: <FaUserGraduate />, text: "Students can track their attendance records effortlessly." },
             { icon: <FaChartLine />, text: "Teachers & Admins can monitor attendance analytics easily." },
-            { icon: <FaLaptopCode />, text: "Advanced AI-driven analytics for better insights." }
+            { icon: <FaLaptopCode />, text: "Advanced analytics for better insights." }
           ].map((feature, index) => (
             <div key={index} className="p-6 bg-gray-100 rounded-lg shadow-md flex flex-col items-center">
               <div className="text-indigo-600 text-5xl mb-4">{feature.icon}</div>

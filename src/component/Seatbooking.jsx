@@ -1,158 +1,167 @@
 import React, { useState, useEffect } from "react";
-import { motion } from "framer-motion";
-import axios from "axios";
 
 const SeatBooking = () => {
+  const [course, setCourse] = useState("BBA");
   const [selectedSeat, setSelectedSeat] = useState(null);
-  const [bookedSeats, setBookedSeats] = useState([]);
-  const [showForm, setShowForm] = useState(false);
-  const [course, setCourse] = useState("BCA");
-  const [formData, setFormData] = useState({
+  const [isLoading, setIsLoading] = useState(false);
+  const [form, setForm] = useState({
     name: "",
     phone: "",
-    twelfthPassoutYear: "",
-    percentage12th: "",
     email: "",
+    passoutYear: "",
+    percentage: "",
   });
-  const [error, setError] = useState("");
-  const [eligibilityError, setEligibilityError] = useState("");
-  const [passoutYearError, setPassoutYearError] = useState("");
-  const [loading, setLoading] = useState(false);
-
-  const totalSeats = course === "BCA" ? 30 : 60;
-  const seats = Array.from({ length: totalSeats }, (_, i) => i + 1);
+  const [bookingError, setBookingError] = useState(null);
+  const [bookedSeats, setBookedSeats] = useState([]);
 
   useEffect(() => {
     const fetchBookedSeats = async () => {
       try {
-        const response = await axios.get(`https://attendance-backend12-production.up.railway.app/api/bookings?course=${course}`);
-        if (response.data && Array.isArray(response.data)) {
-          setBookedSeats(response.data.map((seat) => seat.seat));
-        } else {
-          console.error("Unexpected response format:", response.data);
+        const res = await fetch(`http://localhost:5000/api/booked-seats?course=${course}`);
+        const data = await res.json();
+        if (Array.isArray(data.bookedSeats)) {
+          setBookedSeats(data.bookedSeats);
         }
-      } catch (error) {
-        console.error("Error fetching booked seats:", error);
+      } catch (err) {
+        console.error("Fetching booked seats failed:", err);
       }
     };
+
     fetchBookedSeats();
   }, [course]);
 
-  const handleSeatSelection = (seat) => {
-    if (!bookedSeats.includes(seat)) {
-      setSelectedSeat(seat);
-      setShowForm(true);
-    }
-  };
-
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-  const validateEmail = (email) => {
-    const regex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-    return regex.test(email);
+  const openForm = (seat) => {
+    if (!bookedSeats.includes(seat)) setSelectedSeat(seat); // Allow booking only if seat is not booked
   };
 
-  const handleBooking = async (e) => {
-    e.preventDefault();
-    const currentYear = new Date().getFullYear();
+  const closeForm = () => {
+    setSelectedSeat(null);
+    setForm({
+      name: "",
+      phone: "",
+      email: "",
+      passoutYear: "",
+      percentage: "",
+    });
+    setBookingError(null);
+  };
 
-    if (formData.twelfthPassoutYear > currentYear) {
-      setPassoutYearError("The passout year cannot be in the future.");
-      return;
+  const submitForm = async () => {
+    const { name, phone, email, passoutYear, percentage } = form;
+
+    if (!name || !phone || !email || !passoutYear || !percentage) {
+      return setBookingError("Please fill all fields.");
     }
-    setPassoutYearError("");
 
-    if (formData.percentage12th < 45) {
-      setEligibilityError("Sorry, you are not eligible for seat booking due to low percentage.");
-      return;
+    // Check if the user has already booked a seat
+    const isUserAlreadyBooked = bookedSeats.some(
+      (booking) => booking.phone === phone
+    );
+
+    if (isUserAlreadyBooked) {
+      return setBookingError("You have already booked a seat.");
     }
-    setEligibilityError("");
 
-    if (!validateEmail(formData.email)) {
-      setError("Invalid email. Please enter a valid email address.");
-      return;
-    }
-    setError("");
-
-    setLoading(true);
+    setIsLoading(true);
     try {
-      const response = await axios.post("https://attendance-backend12-production.up.railway.app/api/bookings", {
-        ...formData,
-        seat: selectedSeat,
-        course,
+      const res = await fetch("http://localhost:5000/api/book-seat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ seatNumber: selectedSeat, course, ...form }),
       });
-      console.log("Seat booked", response.data);
-      if (response.status === 201) {
-        setBookedSeats([...bookedSeats, selectedSeat]);
-        setShowForm(false);
-        setSelectedSeat(null);
+
+      const data = await res.json();
+
+      if (res.ok) {
+        setBookedSeats((prevSeats) => [
+          ...prevSeats,
+          { seat: selectedSeat, phone } // Store booked seat with phone number
+        ]);
+        alert(`Seat ${selectedSeat} booked successfully!`);
+        closeForm();
       } else {
-        setError("Unexpected server response.");
+        setBookingError(data.message || "Booking failed. Try again.");
       }
-    } catch (error) {
-      console.error("Error booking seat:", error);
-      setError("Something went wrong");
+    } catch (err) {
+      console.error(err);
+      setBookingError("Error booking seat.");
     } finally {
-      setLoading(false);
+      setIsLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen p-8 flex items-center justify-center">
-      <div className="max-w-4xl mx-auto bg-white p-8 rounded-xl shadow-lg">
-        <h1 className="text-4xl font-bold text-center mb-6">Seat Booking</h1>
-        <div className="mb-6">
-          <label htmlFor="course" className="text-lg font-semibold">Select Course</label>
+    <div className="min-h-screen bg-white flex flex-col items-center justify-center p-4">
+      <div className="w-full max-w-5xl bg-white rounded-2xl shadow-lg p-6 border">
+        <div className="text-center mb-6">
+          <h1 className="text-3xl font-bold text-gray-800">Seat Booking</h1>
+          <p className="text-gray-600">Select your seat for {course}</p>
+        </div>
+
+        <div className="mb-6 flex justify-center">
           <select
-            id="course"
             value={course}
             onChange={(e) => setCourse(e.target.value)}
-            className="w-full p-4 mt-2 rounded-md border-2"
+            className="px-5 py-3 border border-gray-300 rounded-xl text-gray-700 shadow-sm focus:ring-2 focus:ring-indigo-500"
           >
-            <option value="BCA">BCA (30 Seats)</option>
-            <option value="BBA">BBA (60 Seats)</option>
+            <option value="BBA">BBA</option>
+            <option value="BCA">BCA</option>
           </select>
         </div>
-        <div className="grid grid-cols-6 md:grid-cols-10 gap-6">
-          {seats.map((seat) => (
-            <motion.button
+
+        <div className="grid grid-cols-5 sm:grid-cols-6 md:grid-cols-10 gap-3 justify-center">
+          {Array.from({ length: course === "BBA" ? 60 : 30 }, (_, i) => i + 1).map((seat) => (
+            <button
               key={seat}
-              onClick={() => handleSeatSelection(seat)}
-              disabled={bookedSeats.includes(seat)}
-              className={`w-16 h-16 rounded-lg text-white font-semibold flex items-center justify-center text-xl
-              ${bookedSeats.includes(seat) ? "bg-red-500 cursor-not-allowed" : "bg-indigo-600 hover:bg-indigo-700"} 
-              ${selectedSeat === seat ? "ring-4 ring-indigo-500 scale-110" : ""} transition-all`}
-              whileTap={{ scale: 0.95 }}
+              onClick={() => openForm(seat)}
+              className={`w-14 h-14 rounded-lg font-bold text-white flex items-center justify-center transition ${
+                bookedSeats.some((booking) => booking.seat === seat)
+                  ? "bg-gray-300 cursor-not-allowed"
+                  : "bg-indigo-600 hover:bg-indigo-700"
+              }`}
+              disabled={bookedSeats.some((booking) => booking.seat === seat)} // Disable the booked seat
             >
               {seat}
-            </motion.button>
+            </button>
           ))}
         </div>
-        {showForm && (
-          <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-40">
-            <div className="bg-white p-6 rounded-lg shadow-lg w-96 relative">
-              <button onClick={() => setShowForm(false)} className="absolute top-2 right-2 text-gray-600 text-2xl">×</button>
-              <h2 className="text-2xl font-bold mb-4">Book Seat {selectedSeat}</h2>
-              {eligibilityError && <div className="bg-red-100 text-red-600 p-2 mb-4 rounded-md">{eligibilityError}</div>}
-              {passoutYearError && <div className="bg-red-100 text-red-600 p-2 mb-4 rounded-md">{passoutYearError}</div>}
-              <form onSubmit={handleBooking} className="space-y-3">
-                <input type="text" name="name" placeholder="Full Name" onChange={handleChange} className="w-full p-2 border rounded-md" required />
-                <input type="tel" name="phone" placeholder="Phone Number" onChange={handleChange} className="w-full p-2 border rounded-md" required />
-                <input type="text" name="twelfthPassoutYear" placeholder="12th Passout Year" onChange={handleChange} className="w-full p-2 border rounded-md" required />
-                <input type="number" name="percentage12th" placeholder="12th Percentage" onChange={handleChange} className="w-full p-2 border rounded-md" required />
-                <input type="email" name="email" placeholder="Email Address" onChange={handleChange} className="w-full p-2 border rounded-md" required />
-                {error && <p className="text-red-500 text-sm">{error}</p>}
-                <div className="flex justify-between">
-                  <button type="button" onClick={() => setShowForm(false)} className="px-4 py-2 bg-gray-500 text-white rounded-md">Cancel</button>
-                  <button type="submit" className="px-4 py-2 bg-blue-600 text-white rounded-md">Confirm</button>
-                </div>
-              </form>
+      </div>
+
+      {selectedSeat && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl p-6 w-full max-w-md shadow-xl border">
+            <div className="flex justify-between mb-4">
+              <h2 className="text-xl font-bold">Booking Seat #{selectedSeat}</h2>
+              <button onClick={closeForm} className="text-gray-500">✕</button>
+            </div>
+            <div className="space-y-3">
+              {["name", "phone", "email", "passoutYear", "percentage"].map((field) => (
+                <input
+                  key={field}
+                  type={field === "email" ? "email" : "text"}
+                  name={field}
+                  placeholder={field.charAt(0).toUpperCase() + field.slice(1)}
+                  value={form[field]}
+                  onChange={handleChange}
+                  className="w-full px-4 py-2 border rounded-md"
+                />
+              ))}
+              {bookingError && <p className="text-red-600 text-sm">{bookingError}</p>}
+              <button
+                onClick={submitForm}
+                disabled={isLoading}
+                className="w-full bg-indigo-600 text-white py-2 rounded-xl hover:bg-indigo-700 transition"
+              >
+                {isLoading ? "Booking..." : "Confirm Booking"}
+              </button>
             </div>
           </div>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 };
