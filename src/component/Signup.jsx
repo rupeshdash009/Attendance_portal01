@@ -3,15 +3,7 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 
 function Signup() {
-  const [user, setUser] = useState({
-    name: "",
-    email: "",
-    password: "",
-    program: "",
-    year: "",
-    semester: "",
-    rollNumber: "",
-  });
+  const [user, setUser] = useState({ name: "", email: "", password: "" });
   const navigate = useNavigate();
 
   const handleChange = (e) => {
@@ -21,7 +13,7 @@ function Signup() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await axios.post("https://attendance-backend12-production.up.railway.app/api/auth/signup", user);
+      const response = await axios.post("https://attendance-backend12-production.up.railway.app/api/auth/signup", user); // ✅ Fixed URL (lowercase)
       console.log("data", response.data);
       alert("Signup Successful! Please login.");
       navigate("/login");
@@ -30,6 +22,7 @@ function Signup() {
       alert(error.response?.data?.message || "Signup failed");
     }
   };
+  
 
   return (
     <div className="flex justify-center items-center min-h-screen bg-gray-100">
@@ -67,71 +60,6 @@ function Signup() {
               type="password"
               name="password"
               placeholder="••••••••"
-              onChange={handleChange}
-              className="mt-1 w-full p-2 border rounded-md focus:ring focus:ring-blue-300"
-              required
-            />
-          </div>
-
-          {/* Program Selection */}
-          <div>
-            <label className="block text-gray-700 text-sm font-medium">Program</label>
-            <select
-              name="program"
-              onChange={handleChange}
-              className="mt-1 w-full p-2 border rounded-md focus:ring focus:ring-blue-300"
-              required
-            >
-              <option value="">Select Program</option>
-              <option value="BBA">BBA</option>
-              <option value="BCA">BCA</option>
-            </select>
-          </div>
-
-          {/* Year Selection */}
-          <div>
-            <label className="block text-gray-700 text-sm font-medium">Year</label>
-            <select
-              name="year"
-              onChange={handleChange}
-              className="mt-1 w-full p-2 border rounded-md focus:ring focus:ring-blue-300"
-              required
-            >
-              <option value="">Select Year</option>
-              <option value="1">1st Year</option>
-              <option value="2">2nd Year</option>
-              <option value="3">3rd Year</option>
-            </select>
-          </div>
-
-          {/* Semester Selection */}
-          <div>
-            <label className="block text-gray-700 text-sm font-medium">Semester</label>
-            <select
-              name="semester"
-              onChange={handleChange}
-              className="mt-1 w-full p-2 border rounded-md focus:ring focus:ring-blue-300"
-              required
-            >
-              <option value="">Select Semester</option>
-              <option value="1">1st Semester</option>
-              <option value="2">2nd Semester</option>
-              <option value="3">3rd Semester</option>
-              <option value="4">4th Semester</option>
-              <option value="5">5th Semester</option>
-              <option value="6">6th Semester</option>
-              <option value="7">7th Semester</option>
-              <option value="8">8th Semester</option>
-            </select>
-          </div>
-
-          {/* Roll Number */}
-          <div>
-            <label className="block text-gray-700 text-sm font-medium">Roll Number</label>
-            <input
-              type="text"
-              name="rollNumber"
-              placeholder="Enter Roll Number"
               onChange={handleChange}
               className="mt-1 w-full p-2 border rounded-md focus:ring focus:ring-blue-300"
               required

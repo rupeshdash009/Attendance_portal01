@@ -698,9 +698,9 @@ const BBABCAttendance = ({ program = 'BBA', user }) => {
   const [selectedYear, setSelectedYear] = useState('1');
   const [selectedSemester, setSelectedSemester] = useState('1');
   const [selectedPeriod, setSelectedPeriod] = useState('1');
-  const [students, setStudents] = useState([]);
+   
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
-
+  // Sample data for BBA/BCA
   const subjects = program === 'BBA' ? [
     { id: 'bba101', name: 'Principles of Management', code: 'BBA-101' },
     { id: 'bba102', name: 'Business Economics', code: 'BBA-102' },
@@ -721,26 +721,43 @@ const BBABCAttendance = ({ program = 'BBA', user }) => {
     { id: '5', name: '5th Period (2:00-3:15)' }
   ];
 
+  // Generate students based on program, year and semester
+  const generateStudents = (program, year, semester) => {
+    const firstNames = ['Aarav', 'Priya', 'Rahul', 'Neha', 'Vikram', 'Ananya', 'Sanjay', 'Meera', 'Aditya', 'Kavita'];
+    const lastNames = ['Sharma', 'Patel', 'Gupta', 'Singh', 'Joshi', 'Reddy', 'Kumar', 'Verma', 'Malhotra', 'Choudhary'];
+
+    // Adjust student count based on year (more students in earlier years)
+    const baseCount = program === 'BBA' ? 60 : 30;
+    const count = Math.floor(baseCount * (1 - (year - 1) * 0.15));
+
+    return Array.from({ length: count }, (_, i) => {
+      const firstName = firstNames[Math.floor(Math.random() * firstNames.length)];
+      const lastName = lastNames[Math.floor(Math.random() * lastNames.length)];
+
+      return {
+        id: i + 1,
+        name: `${firstName} ${lastName}`,
+        rollNo: `${program}${year}${semester}${(i + 1).toString().padStart(3, '0')}`,
+        year,
+        semester,
+        email: `${firstName.toLowerCase()}.${lastName.toLowerCase()}@${program.toLowerCase()}.edu`
+      };
+    });
+  };
+
+  const [students, setStudents] = useState([]);
+
   useEffect(() => {
-    const fetchStudents = async () => {
-      try {
-        const response = await fetch(`http://localhost:5000/api/users?program=${program}&year=${selectedYear}&semester=${selectedSemester}`);
+    // Initialize students based on program, year and semester
+    const newStudents = generateStudents(program, selectedYear, selectedSemester);
+    setStudents(newStudents);
 
-        const data = await response.json();
-        console.log("Fetched students:", data);
-        setStudents(data);
-
-        const initialStatus = {};
-        data.forEach(student => {
-          initialStatus[student._id] = 'present';
-        });
-        setAttendanceStatus(initialStatus);
-      } catch (error) {
-        console.error("Failed to fetch students:", error);
-      }
-    };
-
-    fetchStudents();
+    // Initialize attendance status
+    const initialStatus = {};
+    newStudents.forEach(student => {
+      initialStatus[student.id] = 'present';
+    });
+    setAttendanceStatus(initialStatus);
   }, [program, selectedYear, selectedSemester]);
 
   const handleStatusChange = (studentId, status) => {
