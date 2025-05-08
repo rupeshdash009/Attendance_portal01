@@ -6,7 +6,6 @@ import Navbar from "./component/Navbar";
 import Home from "./component/Home";
 import About from "./component/About";
 import Seatbooking from './component/Seatbooking';
-import Attendance from "./component/Attendance";
 import Login from "./component/Login";
 import Signup from "./component/Signup";
 import Dashboard from "./component/Dashboard";
@@ -25,7 +24,6 @@ function App() {
         <Route path="/home" element={<Home />} />
         <Route path="/about" element={<About />} />
         <Route path="/seatbooking" element={<Seatbooking />} />
-        <Route path="/Attendance" element={<Attendance />} />
         <Route path="/Login" element={<Login />} />
         <Route path="/Signup" element={<Signup />} />
         <Route path="/Dashboard" element={<Dashboard />} />
