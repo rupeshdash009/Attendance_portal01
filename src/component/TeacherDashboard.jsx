@@ -1,8 +1,16 @@
+ 
+/* eslint-disable no-unused-vars */
+/* eslint-disable react/prop-types */
 import { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import { Bar } from 'react-chartjs-2';
 import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend } from 'chart.js';
-
+ 
+import { jsPDF } from 'jspdf';
+// Either use this import:
+import 'jspdf-autotable';
+// OR this one (both work, choose one):
+import autoTable from 'jspdf-autotable';
 // Register ChartJS components
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
@@ -652,35 +660,36 @@ const ChartContainer = styled.div`
 // ========== ICONS ==========
 const NotificationIcon = () => (
   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <path d="M18 8C18 6.4087 17.3679 4.88258 16.2426 3.75736C15.1174 2.63214 13.5913 2 12 2C10.4087 2 8.88258 2.63214 7.75736 3.75736C6.63214 4.88258 6 6.4087 6 8C6 15 3 17 3 17H21C21 17 18 15 18 8Z" stroke="#111827" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-    <path d="M13.73 21C13.5542 21.3031 13.3019 21.5547 12.9982 21.7295C12.6946 21.9044 12.3504 21.9965 12 21.9965C11.6496 21.9965 11.3054 21.9044 11.0018 21.7295C10.6981 21.5547 10.4458 21.3031 10.27 21" stroke="#111827" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+    <path d="M18 8C18 6.4087 17.3679 4.88258 16.2426 3.75736C15.1174 2.63214 13.5913 2 12 2C10.4087 2 8.88258 2.63214 7.75736 3.75736C6.63214 4.88258 6 6.4087 6 8C6 15 3 17 3 17H21C21 17 18 15 18 8Z" stroke="#111827" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+    <path d="M13.73 21C13.5542 21.3031 13.3019 21.5547 12.9982 21.7295C12.6946 21.9044 12.3504 21.9965 12 21.9965C11.6496 21.9965 11.3054 21.9044 11.0018 21.7295C10.6981 21.5547 10.4458 21.3031 10.27 21" stroke="#111827" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
   </svg>
 );
 
 const AttendanceIcon = () => (
   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <path d="M16 21V19C16 17.9391 15.5786 16.9217 14.8284 16.1716C14.0783 15.4214 13.0609 15 12 15H5C3.93913 15 2.92172 15.4214 2.17157 16.1716C1.42143 16.9217 1 17.9391 1 19V21" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-    <path d="M8.5 11C10.7091 11 12.5 9.20914 12.5 7C12.5 4.79086 10.7091 3 8.5 3C6.29086 3 4.5 4.79086 4.5 7C4.5 9.20914 6.29086 11 8.5 11Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-    <path d="M17 11L19 13L23 9" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+    <path d="M16 21V19C16 17.9391 15.5786 16.9217 14.8284 16.1716C14.0783 15.4214 13.0609 15 12 15H5C3.93913 15 2.92172 15.4214 2.17157 16.1716C1.42143 16.9217 1 17.9391 1 19V21" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+    <path d="M8.5 11C10.7091 11 12.5 9.20914 12.5 7C12.5 4.79086 10.7091 3 8.5 3C6.29086 3 4.5 4.79086 4.5 7C4.5 9.20914 6.29086 11 8.5 11Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+    <path d="M17 11L19 13L23 9" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
   </svg>
 );
 
 const SaveIcon = () => (
   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <path d="M19 21H5C3.89543 21 3 20.1046 3 19V5C3 3.89543 3.89543 3 5 3H16.1716C16.702 3 17.2107 3.21071 17.5858 3.58579L20.4142 6.41421C20.7893 6.78929 21 7.29799 21 7.82843V19C21 20.1046 20.1046 21 19 21Z" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-    <path d="M17 21V13H7V21" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-    <path d="M7 3V8H12" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+    <path d="M19 21H5C3.89543 21 3 20.1046 3 19V5C3 3.89543 3.89543 3 5 3H16.1716C16.702 3 17.2107 3.21071 17.5858 3.58579L20.4142 6.41421C20.7893 6.78929 21 7.29799 21 7.82843V19C21 20.1046 20.1046 21 19 21Z" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+    <path d="M17 21V13H7V21" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+    <path d="M7 3V8H12" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
   </svg>
 );
 
 const CloseIcon = () => (
   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <path d="M18 6L6 18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-    <path d="M6 6L18 18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+    <path d="M18 6L6 18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+    <path d="M6 6L18 18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
   </svg>
 );
 
 // ========== COMPONENTS ==========
+ 
 const BBABCAttendance = ({ program = 'BBA', user }) => {
   const [attendanceDate, setAttendanceDate] = useState(new Date().toISOString().split('T')[0]);
   const [selectedSubject, setSelectedSubject] = useState('');
@@ -689,8 +698,9 @@ const BBABCAttendance = ({ program = 'BBA', user }) => {
   const [selectedYear, setSelectedYear] = useState('1');
   const [selectedSemester, setSelectedSemester] = useState('1');
   const [selectedPeriod, setSelectedPeriod] = useState('1');
+  const [students, setStudents] = useState([]);
+  const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
 
-  // Sample data for BBA/BCA
   const subjects = program === 'BBA' ? [
     { id: 'bba101', name: 'Principles of Management', code: 'BBA-101' },
     { id: 'bba102', name: 'Business Economics', code: 'BBA-102' },
@@ -711,43 +721,26 @@ const BBABCAttendance = ({ program = 'BBA', user }) => {
     { id: '5', name: '5th Period (2:00-3:15)' }
   ];
 
-  // Generate students based on program, year and semester
-  const generateStudents = (program, year, semester) => {
-    const firstNames = ['Aarav', 'Priya', 'Rahul', 'Neha', 'Vikram', 'Ananya', 'Sanjay', 'Meera', 'Aditya', 'Kavita'];
-    const lastNames = ['Sharma', 'Patel', 'Gupta', 'Singh', 'Joshi', 'Reddy', 'Kumar', 'Verma', 'Malhotra', 'Choudhary'];
-    
-    // Adjust student count based on year (more students in earlier years)
-    const baseCount = program === 'BBA' ? 60 : 30;
-    const count = Math.floor(baseCount * (1 - (year - 1) * 0.15));
-    
-    return Array.from({ length: count }, (_, i) => {
-      const firstName = firstNames[Math.floor(Math.random() * firstNames.length)];
-      const lastName = lastNames[Math.floor(Math.random() * lastNames.length)];
-      
-      return {
-        id: i + 1,
-        name: `${firstName} ${lastName}`,
-        rollNo: `${program}${year}${semester}${(i + 1).toString().padStart(3, '0')}`,
-        year,
-        semester,
-        email: `${firstName.toLowerCase()}.${lastName.toLowerCase()}@${program.toLowerCase()}.edu`
-      };
-    });
-  };
-
-  const [students, setStudents] = useState([]);
-
   useEffect(() => {
-    // Initialize students based on program, year and semester
-    const newStudents = generateStudents(program, selectedYear, selectedSemester);
-    setStudents(newStudents);
-    
-    // Initialize attendance status
-    const initialStatus = {};
-    newStudents.forEach(student => {
-      initialStatus[student.id] = 'present';
-    });
-    setAttendanceStatus(initialStatus);
+    const fetchStudents = async () => {
+      try {
+        const response = await fetch(`http://localhost:5000/api/users?program=${program}&year=${selectedYear}&semester=${selectedSemester}`);
+
+        const data = await response.json();
+        console.log("Fetched students:", data);
+        setStudents(data);
+
+        const initialStatus = {};
+        data.forEach(student => {
+          initialStatus[student._id] = 'present';
+        });
+        setAttendanceStatus(initialStatus);
+      } catch (error) {
+        console.error("Failed to fetch students:", error);
+      }
+    };
+
+    fetchStudents();
   }, [program, selectedYear, selectedSemester]);
 
   const handleStatusChange = (studentId, status) => {
@@ -758,10 +751,91 @@ const BBABCAttendance = ({ program = 'BBA', user }) => {
   };
 
   const handleSaveAttendance = () => {
-    alert(`${program} Attendance saved successfully for:\nSubject: ${selectedSubject}\nDate: ${attendanceDate}\nYear: ${selectedYear}\nSemester: ${selectedSemester}\nPeriod: ${selectedPeriod}\nRecorded by: ${user.name}`);
+    setIsGeneratingPDF(true);
+  
+    try {
+      const doc = new jsPDF();
+      
+      // Header
+      doc.setFontSize(18);
+      doc.setTextColor(40);
+      doc.text(`${program} Attendance Report`, 14, 20);
+      
+      // Details
+      doc.setFontSize(12);
+      doc.text(`Date: ${attendanceDate}`, 14, 30);
+      const subject = subjects.find(s => s.id === selectedSubject);
+      doc.text(`Subject: ${subject?.name || ''} (${subject?.code || ''})`, 14, 36);
+      doc.text(`Year: ${selectedYear}`, 14, 42);
+      doc.text(`Semester: ${selectedSemester}`, 14, 48);
+      const period = periods.find(p => p.id === selectedPeriod);
+      doc.text(`Period: ${period?.name || ''}`, 14, 54);
+      doc.text(`Recorded by: ${user.name}`, 14, 60);
+  
+      // Table data
+      const tableData = filteredStudents.map(student => [
+        student.rollNo,
+        student.name,
+        attendanceStatus[student.id]?.toUpperCase() || 'PRESENT'
+      ]);
+  
+      // Create table using the imported autoTable function
+      autoTable(doc, {
+        head: [['Roll No', 'Student Name', 'Status']],
+        body: tableData,
+        startY: 70,
+        styles: {
+          cellPadding: 5,
+          fontSize: 10,
+          valign: 'middle',
+          halign: 'center'
+        },
+        headStyles: {
+          fillColor: [79, 70, 229],
+          textColor: 255,
+          fontStyle: 'bold'
+        },
+        alternateRowStyles: {
+          fillColor: [249, 250, 251]
+        },
+        columnStyles: {
+          0: { cellWidth: 30 },
+          1: { cellWidth: 'auto' },
+          2: { cellWidth: 30 }
+        }
+      });
+  
+      // Summary
+      const summaryY = doc.lastAutoTable.finalY + 15;
+      doc.setFontSize(14);
+      doc.text('Attendance Summary', 14, summaryY);
+      doc.setFontSize(12);
+      doc.text(`• Present: ${presentCount} students`, 14, summaryY + 8);
+      doc.text(`• Absent: ${absentCount} students`, 14, summaryY + 16);
+      doc.text(`• Late: ${lateCount} students`, 14, summaryY + 24);
+      doc.text(`• Attendance Rate: ${attendancePercentage}%`, 14, summaryY + 32);
+  
+      // Footer
+      const footerY = doc.internal.pageSize.height - 10;
+      doc.setFontSize(10);
+      doc.setTextColor(150);
+      doc.text(`Generated on ${new Date().toLocaleString()}`, 14, footerY);
+  
+      // Save
+      const fileName = `${program}_Attendance_${subject?.code || ''}_${attendanceDate.replace(/-/g, '')}.pdf`;
+      doc.save(fileName);
+  
+      alert(`${program} Attendance saved successfully!\nPDF report "${fileName}" has been downloaded.`);
+  
+    } catch (error) {
+      console.error('Error generating PDF:', error);
+      alert('Error generating attendance report. Please try again.');
+    } finally {
+      setIsGeneratingPDF(false);
+    }
   };
 
-  const filteredStudents = students.filter(student => 
+  const filteredStudents = students.filter(student =>
     student.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     student.rollNo.toLowerCase().includes(searchQuery.toLowerCase())
   );
@@ -815,12 +889,12 @@ const BBABCAttendance = ({ program = 'BBA', user }) => {
           <ProgramBadge $program={program}>{program}</ProgramBadge>
         </AttendanceTitle>
         <AttendanceControls>
-          <DatePicker 
-            type="date" 
+          <DatePicker
+            type="date"
             value={attendanceDate}
             onChange={(e) => setAttendanceDate(e.target.value)}
           />
-          <SubjectSelect 
+          <SubjectSelect
             value={selectedSubject}
             onChange={(e) => setSelectedSubject(e.target.value)}
           >
@@ -875,8 +949,8 @@ const BBABCAttendance = ({ program = 'BBA', user }) => {
       {selectedSubject && (
         <>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '24px' }}>
-            <SearchInput 
-              type="text" 
+            <SearchInput
+              type="text"
               placeholder={`Search ${program} students...`}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
@@ -958,9 +1032,22 @@ const BBABCAttendance = ({ program = 'BBA', user }) => {
             <Bar data={chartData} options={chartOptions} />
           </ChartContainer>
 
-          <SaveButton onClick={handleSaveAttendance}>
-            <SaveIcon />
-            Save {program} Attendance
+          <SaveButton
+            onClick={handleSaveAttendance}
+            disabled={isGeneratingPDF || !selectedSubject}
+            style={{
+              opacity: isGeneratingPDF || !selectedSubject ? 0.7 : 1,
+              cursor: isGeneratingPDF || !selectedSubject ? 'not-allowed' : 'pointer'
+            }}
+          >
+            {isGeneratingPDF ? (
+              'Generating PDF Report...'
+            ) : (
+              <>
+                <SaveIcon />
+                Save {program} Attendance
+              </>
+            )}
           </SaveButton>
         </>
       )}
@@ -1054,13 +1141,13 @@ const TeacherDashboard = () => {
       )}
 
       <DashboardTabs>
-        <TabButton 
+        <TabButton
           $active={activeTab === 'overview'}
           onClick={() => setActiveTab('overview')}
         >
           Overview
         </TabButton>
-        <TabButton 
+        <TabButton
           $active={activeTab === 'attendance'}
           onClick={() => setActiveTab('attendance')}
         >
