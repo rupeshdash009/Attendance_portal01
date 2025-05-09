@@ -68,7 +68,7 @@ const SeatBooking = () => {
 
     setIsLoading(true);
     try {
-      const res = await fetch("http://localhost:5000/api/book-seat", {
+      const res = await fetch("https://attendance-backend12-production.up.railway.app/api/book-seat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ seatNumber: selectedSeat, course, ...form }),
